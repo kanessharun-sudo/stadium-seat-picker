@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stadium Seat Picker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: full-bleed 3D stadium, thin signage-style chrome on top, a paper ticket that slides up from the bottom. Single theme by choice. */
+:root{
+  --ink:#0e1622;
+  --ink-soft:rgba(14,22,34,.8);
+  --paper:#f7f3ea;
+  --paper-line:#d9d2c2;
+  --accent:#ff8a1f;
+  --muted:#9aa5b5;
+  --sold:#8d9096;
+  --gold:#d9b877;
+  --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--ink);color:#fff;font-family:var(--body);font-size:15px;line-height:1.4;overflow:hidden}
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#scene.point{cursor:pointer}
+#scene.blocked{cursor:not-allowed}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.top{position:fixed;left:0;right:0;top:0;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-start;justify-content:space-between;padding:16px 18px;pointer-events:none}
+.top > *{pointer-events:auto}
+.brand{background:var(--ink-soft);backdrop-filter:blur(8px);border-radius:10px;padding:10px 14px 9px;max-width:min(420px,100%)}
+.brand h1{font-family:var(--display);font-weight:800;font-size:26px;line-height:1;letter-spacing:.04em;text-transform:uppercase;margin:0;overflow-wrap:anywhere}
+.brand p{margin:3px 0 0;font-size:12px;color:var(--muted);letter-spacing:.02em}
+.tools{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.chip{background:var(--ink-soft);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:8px 14px;font-weight:600;font-size:13px}
+.chip:hover{border-color:var(--accent)}
+.chip[disabled]{opacity:.45;cursor:default}
+.chip[aria-expanded="true"]{background:var(--accent);color:var(--ink);border-color:var(--accent)}
+.legend{display:flex;gap:12px;align-items:center;background:var(--ink-soft);backdrop-filter:blur(8px);border-radius:999px;padding:8px 14px;font-size:12px;color:#dfe5ee}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+.setup{position:fixed;right:18px;top:64px;width:min(290px,calc(100% - 36px));background:var(--ink-soft);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px;display:none;flex-direction:column;gap:10px;max-height:calc(100% - 84px);overflow:auto}
+.setup.open{display:flex}
+.setup label{display:block;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.setup select:disabled{opacity:.6}
+.setup .fine{margin:0}
+.setup select,.setup input{width:100%;background:#0b111b;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 10px;font-size:14px;color:#fff}
+.setup form{border-top:1px solid rgba(255,255,255,.12);padding-top:10px}
+.setup .row{display:flex;gap:8px}
+.setup .row input{min-width:0;flex:1}
+.setup .add{background:var(--accent);color:var(--ink);border:0;border-radius:8px;padding:8px 14px;font-weight:700;font-size:13px}
+.setup .fine{margin:6px 0 0;font-size:12px;color:#c3cbd6}
+.setup .remove{align-self:flex-start;background:none;border:0;padding:0;font-size:12px;font-weight:600;color:#ffb37a;text-decoration:underline;text-underline-offset:3px}
+
+.left{display:flex;flex-direction:column;gap:8px;align-items:flex-start;max-width:min(460px,100%)}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:100%}
+.crumbs button{background:var(--ink-soft);backdrop-filter:blur(8px);border:0;border-radius:8px;padding:6px 10px;font-size:13px;font-weight:600}
+.crumbs button:hover{color:var(--accent)}
+.crumbs button[aria-current="true"]{background:var(--accent);color:var(--ink);cursor:default}
+.crumbs span{color:rgba(255,255,255,.6);font-size:12px}
+
+.hint{position:fixed;left:18px;bottom:18px;background:var(--ink-soft);backdrop-filter:blur(8px);border-radius:10px;padding:10px 14px;max-width:min(360px,calc(100% - 36px))}
+.hint b{display:block;font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:.05em;text-transform:uppercase;line-height:1.1}
+.hint span{font-size:13px;color:#cfd6e0}
+.hint small{display:block;margin-top:4px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.tip{position:fixed;left:0;top:0;pointer-events:none;background:var(--paper);color:var(--ink);border-radius:10px;padding:8px 12px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:none;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tip .k{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#6b7482}
+.tip .v{font-weight:700;font-size:16px;line-height:1.2}
+.tip .p{color:#c95f00;font-weight:700}
+.tip .l{font-size:12px;color:#4d5665}
+.tip.soldtip .p{color:#6b7482}
+
+.ticket{position:fixed;left:50%;bottom:22px;transform:translate(-50%,140%);width:min(680px,calc(100% - 32px));display:grid;grid-template-columns:230px 1fr 132px;background:var(--paper);color:var(--ink);border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.5);transition:transform .5s cubic-bezier(.2,.8,.2,1);visibility:hidden}
+.ticket.show{transform:translate(-50%,0);visibility:visible}
+.ticket .view{position:relative;min-height:190px;background:#222}
+.ticket .view img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.ticket .view em{position:absolute;left:10px;top:10px;font-style:normal;font-size:11px;font-weight:700;background:rgba(14,22,34,.7);color:#fff;border-radius:999px;padding:4px 10px}
+.ticket .view em::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:6px}
+.ticket .info{padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.ticket .k{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#6b7482}
+.ticket h2{font-family:var(--display);font-weight:800;font-size:34px;line-height:1;margin:2px 0 0;letter-spacing:.02em;text-transform:uppercase}
+.ticket dl{display:flex;gap:22px;margin:0}
+.ticket dd{margin:0;font-family:var(--display);font-weight:800;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.ticket .acts{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-top:auto}
+.ticket .go{background:var(--accent);color:var(--ink);border:0;border-radius:999px;padding:9px 16px;font-weight:700;font-size:13px}
+.ticket .go:hover{filter:brightness(1.08)}
+.ticket .keep{background:none;border:0;padding:4px 0;font-weight:700;font-size:13px;color:#3d4654;text-decoration:underline;text-underline-offset:3px}
+.ticket .note{font-size:12px;color:#3d4654;font-weight:600}
+.ticket .stub{border-left:2px dashed var(--paper-line);padding:16px 14px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:10px}
+.ticket .bars{display:flex;gap:2px;height:70px;align-items:stretch}
+.ticket .bars i{display:block;background:var(--ink)}
+.ticket .price{font-family:var(--display);font-weight:800;font-size:30px;color:#d96a00;line-height:1;font-variant-numeric:tabular-nums}
+.ticket.vip{background:#1b1a18;color:#f3ead8}
+.ticket.vip .k{color:#b8a57f}
+.ticket.vip .stub{border-left-color:#4a443a}
+.ticket.vip .bars i{background:#f3ead8}
+.ticket.vip .price{color:var(--gold)}
+.ticket.vip .go{background:#f3ead8}
+.ticket.vip .keep,.ticket.vip .note{color:#cdbf9f}
+
+.fail{position:fixed;inset:0;display:none;place-items:center;padding:24px;text-align:center;background:var(--ink)}
+.fail p{max-width:420px;color:#dfe5ee}
+
+@media (max-width:640px){
+  .brand h1{font-size:21px}
+  .legend{display:none}
+  .setup{top:112px}
+  .hint{bottom:12px;left:12px;padding:8px 12px}
+  .ticket{grid-template-columns:1fr 104px;bottom:12px}
+  .ticket .view{grid-column:1 / -1;min-height:130px}
+  .ticket h2{font-size:28px}
+  .ticket dd{font-size:24px}
+  .ticket .price{font-size:24px}
+  .ticket .bars{height:48px}
+}
+@media (prefers-reduced-motion:reduce){.ticket{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="scene" aria-label="3D stadium. Pick a stand, then a block, then a seat."></canvas>
+
+<header class="top">
+  <div class="left">
+    <div class="brand">
+      <h1 id="venue-name">Wembley Stadium</h1>
+      <p id="venue-sub">Football</p>
+    </div>
+    <nav class="crumbs" id="crumbs" aria-label="Where you are"></nav>
+  </div>
+  <div class="tools">
+    <div class="legend" aria-hidden="true">
+      <span><i style="background:#c8202c"></i>Available</span>
+      <span><i style="background:#ff8a1f"></i>Selected</span>
+      <span><i style="background:#8d9096"></i>Sold</span>
+    </div>
+    <button class="chip" id="setup-btn" type="button" aria-expanded="false" aria-controls="setup">Change stadium</button>
+    <button class="chip" id="tour" type="button">Pick a seat for me</button>
+    <button class="chip" id="back" type="button" disabled>Back</button>
+  </div>
+</header>
+
+<aside class="setup" id="setup" aria-label="Stadium setup">
+  <div><label for="sel-venue">Stadium</label><select id="sel-venue"></select></div>
+  <div><label for="sel-sport">Sport</label><select id="sel-sport"></select></div>
+  <div id="type-row"><label for="sel-type">Stadium type</label><select id="sel-type"></select></div>
+  <p class="fine" id="facts"></p>
+  <button class="remove" id="remove" type="button" hidden>Remove this stadium from the list</button>
+  <form id="add-form">
+    <label for="in-name">Add your own stadium</label>
+    <div class="row"><input id="in-name" type="text" maxlength="40" placeholder="Stadium name" autocomplete="off"><button class="add" type="submit">Add</button></div>
+    <p class="fine" id="add-note">Saves the sport and type chosen above under your name. Real stadiums keep their own sport and layout, so pick a generic one first to change those.</p>
+  </form>
+</aside>
+
+<div class="hint" id="hint"><b>Loading the stadium</b><span>Placing every seat.</span></div>
+<div class="tip" id="tip" role="status"></div>
+
+<section class="ticket" id="ticket" aria-live="polite">
+  <div class="view"><img id="t-img" alt="View of the field from this seat"><em id="t-tag">Your view</em></div>
+  <div class="info">
+    <div><div class="k" id="t-over"></div><h2 id="t-title"></h2></div>
+    <dl id="t-facts"></dl>
+    <div class="acts" id="t-acts"></div>
+  </div>
+  <div class="stub">
+    <div class="k">INR</div>
+    <div class="bars" id="t-bars" aria-hidden="true"></div>
+    <div class="price" id="t-price"></div>
+  </div>
+</section>
+
+<div class="fail" id="fail"><p>This page needs WebGL to draw the stadium. Open it in a current version of Chrome, Safari, Edge or Firefox with hardware acceleration on.</p></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+if(!window.THREE){$('fail').style.display='grid';return}
+var T=THREE, canvas=$('scene'), renderer;
+try{renderer=new T.WebGLRenderer({canvas:canvas,antialias:true})}catch(e){$('fail').style.display='grid';return}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+
+/* ---------- catalogue: sports, stadium types, venues ---------- */
+var PI=Math.PI;
+function stripes(g,x0,y0,w,h,n,c1,c2){for(var i=0;i<n;i++){g.fillStyle=i%2?c1:c2;g.fillRect(x0+i*w/n,y0,w/n+.02,h)}}
+function line(g,x1,y1,x2,y2){g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke()}
+function circ(g,x,y,r,a0,a1){g.beginPath();g.arc(x,y,r,a0===undefined?0:a0,a1===undefined?7:a1);g.stroke()}
+function dot(g,x,y,r){g.beginPath();g.arc(x,y,r,0,7);g.fill()}
+var SPORTS={
+  football:{label:'Football',event:'Cup Final · Saturday, 7:30 pm',A:60,B:41,n:2.6,w:105,h:68,apron:0x356f34,goals:[52.5,7.32,2.44],
+    draw:function(g){stripes(g,-52.5,-34,105,68,14,'#3f8f3a','#4a9c42');g.strokeStyle=g.fillStyle='#f4f6f2';g.lineWidth=.24;
+      g.strokeRect(-52.2,-33.7,104.4,67.4);line(g,0,-33.7,0,33.7);circ(g,0,0,9.15);dot(g,0,0,.4);
+      [-1,1].forEach(function(k){var x=k*52.2;g.strokeRect(k>0?x-16.5:x,-20.15,16.5,40.3);g.strokeRect(k>0?x-5.5:x,-9.16,5.5,18.32);
+        dot(g,x-k*11,0,.4);circ(g,x-k*11,0,9.15,k>0?PI-.93:-.93,k>0?PI+.93:.93)})}},
+  cricket:{label:'Cricket',event:'T20 Final · Sunday, 7:00 pm',A:73,B:67,n:2,w:142,h:130,apron:0x3a8038,
+    draw:function(g){g.save();g.beginPath();g.ellipse(0,0,70,64,0,0,7);g.clip();stripes(g,-70,-64,140,128,14,'#3f8f3a','#4a9c42');g.restore();
+      g.strokeStyle='#f4f6f2';g.lineWidth=.45;g.beginPath();g.ellipse(0,0,68,62,0,0,7);g.stroke();
+      g.lineWidth=.22;g.setLineDash([1.6,1.6]);g.beginPath();g.arc(10.06,0,27.43,-PI/2,PI/2);g.arc(-10.06,0,27.43,PI/2,PI*1.5);g.closePath();g.stroke();g.setLineDash([]);
+      g.fillStyle='#d8c189';g.fillRect(-11.2,-1.53,22.4,3.06);g.lineWidth=.1;[-1,1].forEach(function(k){line(g,k*10.06,-1.32,k*10.06,1.32);line(g,k*8.84,-1.53,k*8.84,1.53)})}},
+  hockey:{label:'Hockey',event:'League Final · Friday, 6:00 pm',A:52,B:34,n:2.6,w:97,h:60.6,apron:0x1f6a52,goals:[45.7,3.66,2.14],
+    draw:function(g){g.fillStyle='#1f6a52';g.fillRect(-48.5,-30.3,97,60.6);g.fillStyle='#2f6fb3';g.fillRect(-45.7,-27.5,91.4,55);
+      g.strokeStyle='#f4f6f2';g.lineWidth=.2;g.strokeRect(-45.7,-27.5,91.4,55);line(g,0,-27.5,0,27.5);
+      [-1,1].forEach(function(k){line(g,k*22.8,-27.5,k*22.8,27.5);circ(g,k*45.7,0,14.63,k>0?PI/2:-PI/2,k>0?PI*1.5:PI/2)})}},
+  athletics:{label:'Athletics',event:'National Championships · Saturday, 5:00 pm',A:93,B:51,n:2.3,w:180,h:96,apron:0x356f34,
+    draw:function(g){function oval(r){g.beginPath();g.moveTo(-42.2,-r);g.lineTo(42.2,-r);g.arc(42.2,0,r,-PI/2,PI/2);g.lineTo(-42.2,r);g.arc(-42.2,0,r,PI/2,PI*1.5);g.closePath()}
+      g.fillStyle='#356f34';g.fillRect(-90,-48,180,96);oval(46.3);g.fillStyle='#b64a32';g.fill();oval(36.5);g.save();g.clip();stripes(g,-80,-37,160,74,16,'#3f8f3a','#4a9c42');g.restore();
+      g.strokeStyle='#f4f6f2';g.lineWidth=.14;for(var i=0;i<=8;i++){oval(36.5+i*1.225);g.stroke()}
+      g.lineWidth=.2;g.strokeRect(-45,-30,90,60);line(g,0,-30,0,30);circ(g,0,0,9.15);line(g,42.2,36.5,42.2,46.3)}},
+  tennis:{label:'Tennis',event:'Singles Final · Sunday, 2:00 pm',A:23,B:14,n:4,w:38,h:20,apron:0x24634a,net:12.8,
+    draw:function(g){g.fillStyle='#2f7d57';g.fillRect(-19,-10,38,20);g.fillStyle='#2b62a8';g.fillRect(-11.885,-5.485,23.77,10.97);
+      g.strokeStyle='#f4f6f2';g.lineWidth=.1;g.strokeRect(-11.885,-5.485,23.77,10.97);line(g,-11.885,-4.115,11.885,-4.115);line(g,-11.885,4.115,11.885,4.115);
+      line(g,-6.4,-4.115,-6.4,4.115);line(g,6.4,-4.115,6.4,4.115);line(g,-6.4,0,6.4,0)}},
+  basketball:{label:'Basketball',event:'Finals Game 7 · Friday, 8:00 pm',A:20,B:13,n:4,w:33,h:20,apron:0x30353e,hoops:12.8,
+    draw:function(g){g.fillStyle='#b98a50';g.fillRect(-16.5,-10,33,20);stripes(g,-14,-7.5,28,15,28,'#cfa05f','#c99a5b');
+      g.strokeStyle='#f4f6f2';g.lineWidth=.1;g.strokeRect(-14,-7.5,28,15);line(g,0,-7.5,0,7.5);circ(g,0,0,1.8);
+      [-1,1].forEach(function(k){g.fillStyle='#a8472f';g.fillRect(k>0?14-5.8:-14,-2.45,5.8,4.9);g.strokeRect(k>0?14-5.8:-14,-2.45,5.8,4.9);
+        circ(g,k*(14-5.8),0,1.8);circ(g,k*12.425,0,6.75,k>0?PI-1.2:-1.2,k>0?PI+1.2:1.2)})}}
+};
+var TYPES={
+  bowl3:{label:'Three-tier bowl',rows:[22,13,20],boxes:true,roof:true,open:'none'},
+  bowl2:{label:'Two-tier bowl',rows:[24,18],boxes:true,roof:true,open:'none'},
+  horseshoe:{label:'Horseshoe, one end open',rows:[22,16],boxes:true,roof:true,open:'end'},
+  stands:{label:'Four stands, open corners',rows:[20,14],boxes:true,roof:true,open:'corners'},
+  ground:{label:'Open ground, single tier',rows:[28],boxes:false,roof:false,open:'none'}
+};
+var TIER_NAMES={1:['Main tier'],2:['Lower tier','Upper tier'],3:['Lower tier','Middle tier','Upper tier']};
+var TIER_PRICE={1:[[3200,2200]],2:[[6500,4200],[2600,1800]],3:[[6500,4200],[3800,2600],[1900,1200]]};
+/* Real venues: published capacity, sport, tier count and stand names. Geometry is generated to match those, it is not a survey of the building. */
+var REAL={
+  wembley:{name:'Wembley Stadium',city:'London',sport:'football',cap:90000,share:[.381,.184,.435],tierNames:['Level 1','Club Wembley','Level 5'],n:2.3,roof:true,boxes:true,
+    note:'Three tiers sized to the published split of 34,303 lower, 16,532 middle and 39,165 upper. Seats use the published 50 cm width and 80 cm row depth. Sliding roof shown open.'},
+  campnou:{name:'Spotify Camp Nou',city:'Barcelona',sport:'football',cap:105000,share:[.3,.3,.4],stands:['Tribuna','Gol Nord','Lateral','Gol Sud'],n:2.4,roof:true,boxes:true,
+    note:'Shown as designed, at about 105,000 with the third tier and the roof. In 2026 the ground is still being rebuilt and holds fewer. Tier split is estimated.'},
+  modi:{name:'Narendra Modi Stadium',city:'Ahmedabad',sport:'cricket',cap:132000,share:[.5,.5],stands:['North Side','Adani Pavilion End','South Side','Jio End'],roof:true,boxes:true,
+    note:'Two large tiers in a full bowl. Tier split is estimated at half each.'},
+  chinnaswamy:{name:'M. Chinnaswamy Stadium',city:'Bengaluru',sport:'cricket',cap:33800,share:[.55,.45],A:68,B:62,stands:['North Side','Pavilion End','South Side','BEML End'],roof:true,boxes:false,
+    note:'Capacity uses the BCCI figure of 33,800. Other listings say 40,000. Tier split and roof are estimated.'},
+  jln:{name:'Jawaharlal Nehru Stadium',city:'New Delhi',sport:'athletics',cap:60254,share:[.5,.5],roof:true,boxes:false,
+    note:'Athletics track with a membrane roof over the seating. Tier split is estimated.'},
+  birsa:{name:'Birsa Munda Hockey Stadium',city:'Rourkela',sport:'hockey',cap:20011,share:[1],open:'corners',roof:true,boxes:false,
+    note:'Four separate stands with cantilevered roofs. One tier per stand is an estimate.'},
+  ashe:{name:'Arthur Ashe Stadium',city:'New York',sport:'tennis',cap:23771,share:[.2,.3,.5],tierNames:['Courtside','Loge','Promenade'],n:3,roof:true,boxes:true,
+    note:'Courtside, suite, loge and promenade levels. Level sizes are estimated. Retractable roof shown open.'},
+  msg:{name:'Madison Square Garden',city:'New York',sport:'basketball',cap:19812,share:[.62,.38],tierNames:['100 Level','200 Level'],n:2.6,roof:false,boxes:true,
+    note:'Indoor arena, drawn with the roof removed so you see the bowl. Level sizes are estimated.'}
+};
+var REALS=Object.keys(REAL).map(function(k){return{id:k,name:REAL[k].name,sport:REAL[k].sport,type:'bowl2',real:true}});
+var PRESETS=[
+  {id:'p1',name:'Meridian Park',sport:'football',type:'bowl3'},
+  {id:'p2',name:'Kaveri Oval',sport:'cricket',type:'bowl2'},
+  {id:'p3',name:'Lakeside Hockey Ground',sport:'hockey',type:'horseshoe'},
+  {id:'p4',name:'Summit Athletics Stadium',sport:'athletics',type:'ground'},
+  {id:'p5',name:'Harbour Centre Court',sport:'tennis',type:'stands'},
+  {id:'p6',name:'Northgate Arena',sport:'basketball',type:'bowl2'}
+];
+var STORE='seatpicker.stadiums.v1';
+function loadCustom(){try{var a=JSON.parse(localStorage.getItem(STORE)||'[]');return Array.isArray(a)?a.filter(function(v){return v&&typeof v.name==='string'&&SPORTS[v.sport]&&TYPES[v.type]}):[]}catch(e){return[]}}
+function saveCustom(){try{localStorage.setItem(STORE,JSON.stringify(custom))}catch(e){}}
+var custom=loadCustom(),venue={id:'wembley',name:'Wembley Stadium',sport:'football',type:'bowl2',real:true};
+
+var STANDS=['North Stand','East Stand','South Stand','West Stand'];
+var VIP_EXTRA=12000,PITCH=0.56,AISLE=1.5,DD=.85,standNames=STANDS,REALCFG=null;
+var C_RED=[0.78,0.13,0.17],C_BLUE=[0.13,0.25,0.62],C_SOLD=[0.55,0.56,0.59],C_HI=[1,0.54,0.12];
+var seed=1;
+function rnd(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}
+var money=function(n){return '₹'+n.toLocaleString('en-IN')};
+
+/* ---------- persistent scene ---------- */
+var scene=new T.Scene();
+scene.fog=new T.Fog(0xdfe6e4,500,2600);
+var cam=new T.PerspectiveCamera(42,1,0.3,5000);
+scene.add(new T.HemisphereLight(0xffffff,0x5b6b4a,0.82));
+var sun=new T.DirectionalLight(0xffe0b0,0.85);sun.position.set(-260,180,140);scene.add(sun);
+(function sky(){
+  var c=document.createElement('canvas');c.width=4;c.height=256;var g=c.getContext('2d');
+  var gr=g.createLinearGradient(0,0,0,256);
+  gr.addColorStop(0,'#4f93d2');gr.addColorStop(.45,'#9cc6e6');gr.addColorStop(.56,'#f4e6c8');gr.addColorStop(1,'#e9dcc0');
+  g.fillStyle=gr;g.fillRect(0,0,4,256);
+  scene.add(new T.Mesh(new T.SphereGeometry(3000,24,16),new T.MeshBasicMaterial({map:new T.CanvasTexture(c),side:T.BackSide,fog:false})));
+})();
+var ground=new T.Mesh(new T.PlaneGeometry(6000,6000),new T.MeshLambertMaterial({color:0x5f9a3c}));ground.rotation.x=-PI/2;ground.position.y=-.05;scene.add(ground);
+function lam(color,opts){var o=opts||{};o.color=color;o.side=T.DoubleSide;return new T.MeshLambertMaterial(o)}
+function seatGeo(){var a=new T.BoxGeometry(.46,.09,.42).toNonIndexed();a.translate(0,.42,-.02);
+  var b=new T.BoxGeometry(.46,.5,.07).toNonIndexed();b.translate(0,.68,.2);
+  var g=new T.BufferGeometry();['position','normal'].forEach(function(n){var x=a.attributes[n].array,y=b.attributes[n].array,m=new Float32Array(x.length+y.length);m.set(x);m.set(y,x.length);g.setAttribute(n,new T.BufferAttribute(m,3))});return g}
+var vip=new T.Group();(function(){var m=lam(0x14161a);for(var j=0;j<4;j++){var g=new T.Mesh(seatGeo(),m);g.scale.set(1.5,1.25,1.5);g.position.set((j-1.5)*1.05,0,0);vip.add(g)}
+  var rail=new T.Mesh(new T.BoxGeometry(6,.06,.06),lam(0x2a2d33));rail.position.set(0,.95,-.75);vip.add(rail)})();
+vip.visible=false;scene.add(vip);
+
+/* ---------- per-venue world (rebuilt on every change) ---------- */
+var world=null,A,B,EXP,NB,TIERS,tb,blockStand,openBlock,segOpen,SEGS=480,dOut,hTop,box,priceTable;
+var X,Y,Z,NX,NZ,sTier,sBlock,sRow,sNum,sSold,blocks,stands,N,baseCol,col,seats,grid,picks;
+function sp(v){return (v<0?-1:1)*Math.pow(Math.abs(v),EXP)}
+function pt(d,t,o){o.x=(A+d)*sp(Math.cos(t));o.z=(B+d)*sp(Math.sin(t));return o}
+function bandGeo(dA,hA,dB,hB,masked){
+  var pos=new Float32Array((SEGS+1)*6),idx=[],p={x:0,z:0};
+  for(var j=0;j<=SEGS;j++){var t=j/SEGS*PI*2;
+    pt(dA,t,p);pos[j*6]=p.x;pos[j*6+1]=hA;pos[j*6+2]=p.z;
+    pt(dB,t,p);pos[j*6+3]=p.x;pos[j*6+4]=hB;pos[j*6+5]=p.z;
+    if(j<SEGS&&!(masked&&segOpen[j])){var a=j*2;idx.push(a,a+1,a+2,a+1,a+3,a+2)}}
+  var g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();return g}
+function band(dA,hA,dB,hB,mat,masked){var m=new T.Mesh(bandGeo(dA,hA,dB,hB,masked),mat);world.add(m);return m}
+function discGeo(d,h){var pos=[0,h,0],idx=[],p={x:0,z:0};
+  for(var j=0;j<=SEGS;j++){pt(d,j/SEGS*PI*2,p);pos.push(p.x,h,p.z);if(j<SEGS)idx.push(0,j+2,j+1)}
+  var g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();return g}
+function gkey(ti,x,z){return ti*4194304+Math.floor((x+900)/3)*2048+Math.floor((z+900)/3)}
+function priceOf(ti,k,row){var long=blockStand[k]%2===0?0:1,base=priceTable[ti][long],t=TIERS[ti];
+  return Math.round(base*(1+.22*(t.rows-row)/t.rows)/50)*50}
+
+function buildWorld(){
+  if(world){scene.remove(world);world.traverse(function(o){if(o.geometry)o.geometry.dispose();if(o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}});
+    if(picks)picks.forEach(function(m){m.geometry.dispose();m.material.dispose()})}
+  world=new T.Group();scene.add(world);
+  var S=SPORTS[venue.sport],R=venue.real?REAL[venue.id]:null,TY=R?{rows:R.share,boxes:R.boxes,roof:R.roof,open:R.open||'none'}:TYPES[venue.type];
+  REALCFG=R;A=R&&R.A||S.A;B=R&&R.B||S.B;EXP=2/(R&&R.n||S.n);
+  PITCH=R?.5:.56;AISLE=R?1.2:1.5;DD=R?.8:.85;standNames=R&&R.stands||STANDS;
+  seed=0;(venue.sport+'|'+(R?venue.id:venue.type)).split('').forEach(function(ch){seed=(seed*31+ch.charCodeAt(0))|0});
+
+  /* block boundaries: equal arc length on a reference row */
+  (function(){var M=2880,dr=20,cum=[0],p={x:0,z:0},px,pz;pt(dr,0,p);px=p.x;pz=p.z;
+    for(var j=1;j<=M;j++){pt(dr,j/M*PI*2,p);cum.push(cum[j-1]+Math.hypot(p.x-px,p.z-pz));px=p.x;pz=p.z}
+    var tot=cum[M];NB=Math.max(12,Math.min(48,Math.round(tot/16.5/4)*4));tb=[0];var j2=0;
+    for(var k=1;k<NB;k++){var target=k*tot/NB;while(cum[j2+1]<target)j2++;tb.push((j2+(target-cum[j2])/(cum[j2+1]-cum[j2]))/M*PI*2)}
+    tb.push(PI*2)})();
+  blockStand=[];openBlock=[];
+  for(var k0=0;k0<NB;k0++){var tc=(tb[k0]+tb[k0+1])/2,c=Math.cos(tc),s=Math.sin(tc),stn=Math.abs(s)>Math.abs(c)?(s>0?2:0):(c>0?1:3);blockStand.push(stn);
+    var op=false;if(TY.open==='end')op=stn===1;
+    else if(TY.open==='corners')for(var q=0;q<4;q++){var ct=PI/4+q*PI/2;if(ct>=tb[k0]&&ct<tb[k0+1])op=true}
+    openBlock.push(op)}
+  segOpen=[];(function(){var k=0;for(var j=0;j<SEGS;j++){var tm=(j+.5)/SEGS*PI*2;while(tb[k+1]<tm)k++;segOpen.push(openBlock[k])}})();
+  function rowSeats(dd){var n=0,p={x:0,z:0};for(var k=0;k<NB;k++){if(openBlock[k])continue;var len=0,px=0,pz=0;
+    for(var j=0;j<=16;j++){pt(dd,tb[k]+(tb[k+1]-tb[k])*j/16,p);if(j)len+=Math.hypot(p.x-px,p.z-pz);px=p.x;pz=p.z}
+    n+=Math.max(0,Math.floor((len-AISLE)/PITCH))}return n}
+
+  /* tiers: fixed row counts for generic types, rows fitted to the real capacity for real venues */
+  var nT=TY.rows.length,d=6,h=1.2,rise=[.36,.5,.62],names=R&&R.tierNames||TIER_NAMES[nT];TIERS=[];box=null;priceTable=TIER_PRICE[nT];
+  TY.rows.forEach(function(rows,i){
+    if(R){var want=R.cap*R.share[i],got=0;rows=0;while(got<want&&rows<90){var add=rowSeats(d+rows*DD);if(rows>3&&got+add/2>want)break;got+=add;rows++}}
+    var dh=nT===1?.42:rise[i+(nT===2&&i===1?1:0)],t={name:names[i],rows:rows,d0:d,dd:DD,h0:h,dh:dh};
+    t.d1=d+(rows-1)*DD;t.h1=h+(rows-1)*dh;TIERS.push(t);
+    if(i===0&&TY.boxes&&nT>1){box={d:t.d1,h:t.h1};d=t.d1+3.15;h=t.h1+3.74}else{d=t.d1+3.3;h=t.h1+3.5}});
+  var last=TIERS[nT-1];dOut=last.d1+1.7;hTop=last.h1+2.7;
+
+  /* park */
+  band(dOut,.04,dOut+24,.04,lam(0xcfcbc2));
+  band(dOut+38,.05,dOut+45,.05,lam(0x4a4f57));
+  band(dOut+152,.05,dOut+157,.05,lam(0xd8d2c0));
+  var roadStart=A+dOut+34;
+  for(var q1=0;q1<4;q1++){var ang=PI/4+q1*PI/2+.12,L=560,r=new T.Mesh(new T.PlaneGeometry(L,7),lam(0x4a4f57));r.rotation.x=-PI/2;r.rotation.z=-ang;
+    r.position.set(Math.cos(ang)*(roadStart+L/2),.045,Math.sin(ang)*(roadStart+L/2));world.add(r)}
+  (function trees(){var n=1700,m=new T.InstancedMesh(new T.IcosahedronGeometry(1,0),new T.MeshLambertMaterial({color:0xffffff}),n),o=new T.Object3D(),cc=new T.Color(),p={x:0,z:0},i=0;
+    while(i<n){var t=rnd()*PI*2,dd=dOut+30+Math.pow(rnd(),1.5)*760;
+      if(Math.abs(dd-dOut-41.5)<7||Math.abs(dd-dOut-154.5)<5)continue;pt(dd,t,p);var skip=false;
+      for(var q2=0;q2<4;q2++){var a2=PI/4+q2*PI/2+.12,cs=Math.cos(a2),sn=Math.sin(a2);if(p.x*cs+p.z*sn>roadStart-10&&Math.abs(p.x*sn-p.z*cs)<9)skip=true}
+      if(skip)continue;
+      var sz=3+rnd()*4.5;o.position.set(p.x,sz*.95,p.z);o.scale.set(sz,sz*1.3,sz);o.rotation.y=rnd()*6;o.updateMatrix();m.setMatrixAt(i,o.matrix);
+      cc.setHSL(.27+rnd()*.07,.5,.17+rnd()*.12);m.setColorAt(i,cc);i++}
+    m.frustumCulled=false;world.add(m)})();
+
+  /* field */
+  (function field(){var sc=Math.min(32,Math.floor(1500/S.w)),cv=document.createElement('canvas');cv.width=Math.round(S.w*sc);cv.height=Math.round(S.h*sc);
+    var g=cv.getContext('2d');g.translate(cv.width/2,cv.height/2);g.scale(sc,sc);S.draw(g);
+    var tex=new T.CanvasTexture(cv);tex.anisotropy=renderer.capabilities.getMaxAnisotropy();
+    world.add(new T.Mesh(discGeo(5.4,.02),lam(S.apron)));
+    var p=new T.Mesh(new T.PlaneGeometry(S.w*A/S.A,S.h*B/S.B),new T.MeshLambertMaterial({map:tex,transparent:true}));p.rotation.x=-PI/2;p.position.y=.06;world.add(p);
+    var W=lam(0xf2f1ec);
+    if(S.goals)[-1,1].forEach(function(sx){var x=sx*S.goals[0],w=S.goals[1],gh=S.goals[2];
+      [-w/2,w/2].forEach(function(z){var b=new T.Mesh(new T.BoxGeometry(.12,gh,.12),W);b.position.set(x,gh/2,z);world.add(b)});
+      var bar=new T.Mesh(new T.BoxGeometry(.12,.12,w+.12),W);bar.position.set(x,gh,0);world.add(bar)});
+    if(S.net){var nt=new T.Mesh(new T.BoxGeometry(.06,1,S.net),lam(0xf2f1ec,{transparent:true,opacity:.7}));nt.position.set(0,.5,0);world.add(nt)}
+    if(S.hoops)[-1,1].forEach(function(sx){var bb=new T.Mesh(new T.BoxGeometry(.1,1.05,1.8),W);bb.position.set(sx*S.hoops,3.4,0);world.add(bb);
+      var po=new T.Mesh(new T.BoxGeometry(.2,3.4,.2),lam(0x2a2d33));po.position.set(sx*(S.hoops+1),1.7,0);world.add(po)});
+  })();
+
+  /* structure */
+  var M_CONC=lam(0xb9bcc0),M_DARK=lam(0x3a4252),M_WHITE=lam(0xf2f1ec);
+  picks=[];
+  TIERS.forEach(function(t){band(t.d0-.7,t.h0-.07,t.d1+.9,t.h1-.07+t.dh,M_CONC,true);
+    t.pick=new T.Mesh(bandGeo(t.d0-.7,t.h0+.5,t.d1+.9,t.h1+.5+t.dh,true),new T.MeshBasicMaterial({side:T.DoubleSide}));picks.push(t.pick)});
+  band(5.3,0,5.3,1.25,M_DARK,true);
+  for(var ti0=0;ti0<nT-1;ti0++){var t0=TIERS[ti0],d1=t0.d1,h1=t0.h1;
+    band(d1+1.05,h1+.35,d1+1.05,h1+.85,M_DARK,true);
+    if(ti0===0&&box){
+      band(d1+1.05,h1+.4,d1+3.75,h1+.4,M_CONC,true);
+      band(d1+1.45,h1+.45,d1+1.45,h1+3.45,lam(0x9fd0e8,{transparent:true,opacity:.38,depthWrite:false}),true);
+      band(d1+3.75,h1+.4,d1+3.75,h1+3.55,M_DARK,true);
+      band(d1+1.05,h1+3.5,d1+3.35,h1+3.5,M_WHITE,true);
+      band(d1+2.45,h1+3.5,d1+2.45,h1+3.75,M_DARK,true);
+    }else{band(d1+1.4,h1+.6,d1+2.6,h1+.6,M_CONC,true);band(d1+2.6,h1-1,d1+2.6,h1+3.5,M_DARK,true)}}
+  band(dOut,0,dOut+2.1,hTop,lam(0xe9e6df),true);
+  band(dOut,hTop-1.9,dOut,hTop,M_DARK,true);
+  if(TY.roof){band(dOut-13.4,hTop+6.5,dOut+10.6,hTop+1.7,lam(0xffffff,{transparent:true,opacity:.62,depthWrite:false}),true);
+    band(dOut+10.6,hTop+1.7,dOut+10.6,hTop+.1,M_WHITE,true)}
+  if(nT>1)[-1,1].forEach(function(sx){if(sx>0&&TY.open==='end')return;
+    var sbw=Math.min(26,B*.9),b=new T.Mesh(new T.BoxGeometry(1.2,sbw*.3,sbw),lam(0x1b222e));b.position.set(sx*(A+dOut-6.4),hTop+4,0);world.add(b)});
+
+  /* seats */
+  X=[];Y=[];Z=[];NX=[];NZ=[];sTier=[];sBlock=[];sRow=[];sNum=[];sSold=[];blocks=[];
+  var b0,blockRate=[];for(b0=0;b0<nT*NB;b0++){blocks.push({seats:[],cx:0,cy:0,cz:0,nx:0,nz:0,avail:0,min:1e9});var u=rnd();blockRate.push(.1+.62*u*u)}
+  (function(){var SS=16,p={x:0,z:0},sx=new Float32Array(SS+1),sz=new Float32Array(SS+1),cum=new Float32Array(SS+1);
+    for(var ti=0;ti<nT;ti++){var t=TIERS[ti];
+      for(var r=0;r<t.rows;r++){var dd=t.d0+r*t.dd,hh=t.h0+r*t.dh;
+        for(var k=0;k<NB;k++){if(openBlock[k])continue;
+          for(var j=0;j<=SS;j++){pt(dd,tb[k]+(tb[k+1]-tb[k])*j/SS,p);sx[j]=p.x;sz[j]=p.z;cum[j]=j?cum[j-1]+Math.hypot(sx[j]-sx[j-1],sz[j]-sz[j-1]):0}
+          var n=Math.floor((cum[SS]-AISLE)/PITCH);if(n<1)continue;
+          var start=(cum[SS]-n*PITCH)/2+PITCH/2,seg=0,bi=ti*NB+k,bl=blocks[bi];
+          for(var q=0;q<n;q++){var s=start+q*PITCH;while(cum[seg+1]<s)seg++;
+            var f=(s-cum[seg])/(cum[seg+1]-cum[seg]),x=sx[seg]+(sx[seg+1]-sx[seg])*f,z=sz[seg]+(sz[seg+1]-sz[seg])*f;
+            var tx=sx[seg+1]-sx[seg],tz=sz[seg+1]-sz[seg],l=Math.hypot(tx,tz),nx=tz/l,nz=-tx/l;
+            if(nx*x+nz*z<0){nx=-nx;nz=-nz}
+            var i=X.length;X.push(x);Y.push(hh);Z.push(z);NX.push(nx);NZ.push(nz);sTier.push(ti);sBlock.push(k);sRow.push(r+1);sNum.push(q+1);
+            var sold=rnd()<blockRate[bi]?1:0;sSold.push(sold);
+            bl.seats.push(i);bl.cx+=x;bl.cy+=hh;bl.cz+=z;bl.nx+=nx;bl.nz+=nz;
+            if(!sold){bl.avail++;var pr=priceOf(ti,k,r+1);if(pr<bl.min)bl.min=pr}}}}}})();
+  N=X.length;
+  stands=[0,1,2,3].map(function(){return{seats:[],cx:0,cy:0,cz:0,nx:0,nz:0,avail:0,min:1e9,n:0}});
+  blocks.forEach(function(bl,bi){var n=bl.seats.length||1,st2=stands[blockStand[bi%NB]];
+    st2.cx+=bl.cx;st2.cy+=bl.cy;st2.cz+=bl.cz;st2.nx+=bl.nx;st2.nz+=bl.nz;st2.n+=bl.seats.length;st2.avail+=bl.avail;if(bl.min<st2.min)st2.min=bl.min;
+    Array.prototype.push.apply(st2.seats,bl.seats);
+    bl.cx/=n;bl.cy/=n;bl.cz/=n;var l=Math.hypot(bl.nx,bl.nz)||1;bl.nx/=l;bl.nz/=l});
+  stands.forEach(function(s2){var n=s2.n||1;s2.cx/=n;s2.cy/=n;s2.cz/=n;var l=Math.hypot(s2.nx,s2.nz)||1;s2.nx/=l;s2.nz/=l});
+
+  baseCol=new Float32Array(N*3);col=new Float32Array(N*3);var mats=new Float32Array(N*16);grid=new Map();
+  for(var i0=0;i0<N;i0++){
+    var blue=rnd()<.09||(sRow[i0]%7===0&&rnd()<.5),c0=blue?C_BLUE:C_RED,jit=.9+rnd()*.2;
+    baseCol[i0*3]=c0[0]*jit;baseCol[i0*3+1]=c0[1]*jit;baseCol[i0*3+2]=c0[2]*jit;
+    var o=i0*16,nx0=NX[i0],nz0=NZ[i0];
+    mats[o]=nz0;mats[o+2]=-nx0;mats[o+5]=1;mats[o+8]=nx0;mats[o+10]=nz0;mats[o+12]=X[i0];mats[o+13]=Y[i0];mats[o+14]=Z[i0];mats[o+15]=1;
+    var gk=gkey(sTier[i0],X[i0],Z[i0]),ga=grid.get(gk);if(!ga){ga=[];grid.set(gk,ga)}ga.push(i0)}
+  col.set(baseCol);
+  seats=new T.InstancedMesh(seatGeo(),new T.MeshLambertMaterial({color:0xffffff}),N);
+  seats.instanceMatrix=new T.InstancedBufferAttribute(mats,16);
+  seats.instanceColor=new T.InstancedBufferAttribute(col,3);
+  seats.frustumCulled=false;world.add(seats);
+}
+function nearestSeat(ti,x,y,z){var best=-1,bd=4;
+  for(var dx=-3;dx<=3;dx+=3)for(var dz=-3;dz<=3;dz+=3){var a=grid.get(gkey(ti,x+dx,z+dz));if(!a)continue;
+    for(var j=0;j<a.length;j++){var i=a[j],ex=X[i]-x,ey=Y[i]+.5-y,ez=Z[i]-z,dd=ex*ex+ey*ey+ez*ez;if(dd<bd){bd=dd;best=i}}}
+  return best}
+
+/* ---------- state, painting ---------- */
+var st={level:0,stand:-1,tier:-1,block:-1,seat:-1,vip:false,held:false,az:0,busy:false,hover:null};
+function inOpenBlock(i){return st.level>=2&&sTier[i]===st.tier&&sBlock[i]===st.block}
+function paint(list,mode){
+  for(var j=0;j<list.length;j++){var i=list[j],c;
+    if(i===st.seat&&st.level>=3)c=C_HI;
+    else if(mode===1)c=sSold[i]?C_SOLD:C_HI;
+    else if(inOpenBlock(i)&&sSold[i])c=C_SOLD;
+    else{col[i*3]=baseCol[i*3];col[i*3+1]=baseCol[i*3+1];col[i*3+2]=baseCol[i*3+2];continue}
+    col[i*3]=c[0];col[i*3+1]=c[1];col[i*3+2]=c[2]}
+  seats.instanceColor.needsUpdate=true}
+function hoverList(h){if(!h)return[];if(h.t==='s')return stands[h.s].seats;if(h.t==='b')return blocks[h.b].seats;return[h.i]}
+function setHover(h){var a=st.hover;
+  if((a&&h&&a.key===h.key)||(!a&&!h))return;
+  if(a)paint(hoverList(a),0);st.hover=h;if(h)paint(hoverList(h),1)}
+
+/* ---------- camera ---------- */
+var cur={p:new T.Vector3(),t:new T.Vector3(),f:42},tw=null;
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function apply(){cam.position.copy(cur.p);cam.fov=cur.f;cam.updateProjectionMatrix();cam.lookAt(cur.t)}
+function fly(p,t,f,ms){return new Promise(function(res){
+  if(reduce||!ms){cur.p.copy(p);cur.t.copy(t);cur.f=f;apply();res();return}
+  tw={p0:cur.p.clone(),t0:cur.t.clone(),f0:cur.f,p1:p,t1:t,f1:f,s:performance.now(),ms:ms,res:res}})}
+function wide(){return Math.max(1,1.25/cam.aspect)}
+function vOverview(){var k=wide(),S=A+dOut;return[new T.Vector3(Math.sin(st.az)*1.82*S*k,1.74*S*k,Math.cos(st.az)*1.82*S*k),new T.Vector3(0,4,0),42]}
+function vStand(s){var g=stands[s],k=wide(),d=(s%2?A+25:B*1.95+25)*k;return[new T.Vector3(g.cx-g.nx*d,g.cy+(17+.3*d)*k,g.cz-g.nz*d),new T.Vector3(g.cx,g.cy-2,g.cz),42]}
+function vBlock(ti,b){var g=blocks[ti*NB+b],k=wide(),d0=31+ti*2.5,d=Math.max(d0,TIERS[ti].rows*DD*1.15+8)*k,up=(15-ti*3)*d/d0;return[new T.Vector3(g.cx-g.nx*d,g.cy+up,g.cz-g.nz*d),new T.Vector3(g.cx,g.cy,g.cz),42]}
+function vSeat(i){return[new T.Vector3(X[i]-NX[i]*.1,Y[i]+1.2,Z[i]-NZ[i]*.1),new T.Vector3(X[i]*.12,-2,Z[i]*.12),64]}
+function boxPose(b){var tc=(tb[b]+tb[b+1])/2,p={x:0,z:0},q={x:0,z:0};pt(box.d+2.75,tc,p);pt(box.d+3.75,tc,q);var nx=q.x-p.x,nz=q.z-p.z,l=Math.hypot(nx,nz);return{x:p.x,z:p.z,nx:nx/l,nz:nz/l}}
+function vVip(b){var o=boxPose(b);return[new T.Vector3(o.x,box.h+2.4,o.z),new T.Vector3(o.x*.1,-3,o.z*.1),68]}
+
+/* ---------- navigation ---------- */
+var hint=$('hint'),crumbs=$('crumbs'),tip=$('tip'),ticket=$('ticket');
+function blockLabel(ti,b){return (ti+1)+('0'+(b+1)).slice(-2)}
+function gate(b){return standNames[blockStand[b]][0]+(1+b%4)}
+function setHint(a,b){hint.innerHTML='<b>'+a+'</b><span>'+b+'</span><small>'+N.toLocaleString('en-US')+' seats drawn in one instanced mesh · three.js</small>'}
+function ui(){
+  var parts=[['Stadium',0]];
+  if(st.level>=1)parts.push([standNames[st.stand],1]);
+  if(st.level>=2)parts.push(['Block '+blockLabel(st.tier,st.block),2]);
+  if(st.level>=3)parts.push(['Row '+sRow[st.seat]+' · Seat '+sNum[st.seat],3]);
+  if(st.vip)parts.push(['Skybox '+(st.block+1),4]);
+  crumbs.innerHTML='';
+  parts.forEach(function(p,i){if(i){var s=document.createElement('span');s.textContent='›';crumbs.appendChild(s)}
+    var b=document.createElement('button');b.type='button';b.textContent=p[0];
+    if(i===parts.length-1)b.setAttribute('aria-current','true');else b.onclick=function(){goLevel(p[1])};crumbs.appendChild(b)});
+  $('back').disabled=st.level===0;
+  if(st.level===0)setHint('Step 1 · Choose a stand','Move over the stadium and click a stand. Drag to turn the view.');
+  else if(st.level===1)setHint('Step 2 · Choose a block','Each block shows its price and the seats left.');
+  else if(st.level===2)setHint('Step 3 · Choose a seat','Grey seats are sold. Click a red or blue one.');
+  hint.style.display=st.level>=3?'none':'';
+  canvas.style.cursor=st.level===0?'':'default';
+}
+function clearOpenBlock(){if(st.block<0)return;var l=blocks[st.tier*NB+st.block].seats,lv=st.level;st.level=0;var s=st.seat;st.seat=-1;paint(l,0);st.level=lv;st.seat=s}
+function hideTicket(){ticket.classList.remove('show')}
+function go(view,ms){st.busy=true;setHover(null);tip.style.display='none';return fly(view[0],view[1],view[2],ms).then(function(){st.busy=false})}
+function goOverview(){hideTicket();clearOpenBlock();vip.visible=false;st.level=0;st.stand=st.tier=st.block=st.seat=-1;st.vip=false;ui();return go(vOverview(),1500)}
+function goStand(s){hideTicket();clearOpenBlock();vip.visible=false;st.level=1;st.stand=s;st.tier=st.block=st.seat=-1;st.vip=false;ui();return go(vStand(s),1500)}
+function goBlock(ti,b){hideTicket();clearOpenBlock();vip.visible=false;st.stand=blockStand[b];st.tier=ti;st.block=b;st.seat=-1;st.vip=false;st.level=2;paint(blocks[ti*NB+b].seats,0);ui();return go(vBlock(ti,b),1400)}
+function goSeat(i){hideTicket();vip.visible=false;closeSetup();
+  if(st.tier!==sTier[i]||st.block!==sBlock[i]){clearOpenBlock();st.tier=sTier[i];st.block=sBlock[i];st.stand=blockStand[st.block]}
+  st.level=3;st.vip=false;st.held=false;st.seat=i;paint(blocks[st.tier*NB+st.block].seats,0);ui();
+  return go(vSeat(i),1900).then(function(){showTicket()})}
+function goVip(){if(!box)return;hideTicket();st.vip=true;st.held=false;ui();
+  var o=boxPose(st.block);vip.position.set(o.x-o.nx*1.9,box.h+.45,o.z-o.nz*1.9);vip.rotation.y=Math.atan2(o.nx,o.nz);vip.visible=true;
+  return go(vVip(st.block),2000).then(function(){showTicket()})}
+function goLevel(l){if(st.busy)return;
+  if(l<=0)return goOverview();if(l===1)return goStand(st.stand);if(l===2)return goBlock(st.tier,st.block);if(l===3)return goSeat(st.seat)}
+function back(){if(st.busy||st.level===0)return;if(st.vip)return goSeat(st.seat);goLevel(st.level-1)}
+
+/* ---------- ticket ---------- */
+var shot=document.createElement('canvas');shot.width=560;shot.height=420;
+function snap(){renderer.render(scene,cam);var g=shot.getContext('2d'),w=canvas.width,h=canvas.height,r=shot.width/shot.height,sw=Math.min(w,h*r),sh=sw/r;
+  g.drawImage(canvas,(w-sw)/2,(h-sh)/2,sw,sh,0,0,shot.width,shot.height);try{return shot.toDataURL('image/jpeg',.82)}catch(e){return''}}
+function bars(n){var h='';for(var j=0;j<22;j++){n=(n*1103515245+12345)&0x7fffffff;h+='<i style="width:'+(1+n%4)+'px"></i>'}return h}
+function fact(k,v){return '<div><dt class="k">'+k+'</dt><dd>'+v+'</dd></div>'}
+function showTicket(){var i=st.seat,ti=st.tier,b=st.block,price=priceOf(ti,b,sRow[i]);
+  $('t-img').src=snap();ticket.classList.toggle('vip',st.vip);
+  var acts=$('t-acts');acts.innerHTML='';
+  function btn(cls,txt,fn){var x=document.createElement('button');x.type='button';x.className=cls;x.textContent=txt;x.onclick=fn;acts.appendChild(x)}
+  function note(txt){var x=document.createElement('span');x.className='note';x.textContent=txt;acts.appendChild(x)}
+  if(st.vip){
+    $('t-tag').textContent='Your view from the box';$('t-over').textContent='VIP · Level 2 · '+standNames[st.stand];
+    $('t-title').textContent='Skybox '+(b+1);$('t-facts').innerHTML=fact('Seats','8')+fact('Entry','VIP')+fact('Gate',gate(b));
+    $('t-price').textContent=money(price+VIP_EXTRA);
+    if(st.held)note('Box held. This is a demo, so no payment is taken.');
+    else{btn('go','Hold this box',function(){st.held=true;showTicket()});btn('keep','Back to my seat',function(){if(!st.busy)goSeat(i)})}
+  }else{
+    $('t-tag').textContent='Your view';$('t-over').textContent=standNames[st.stand]+' · '+TIERS[ti].name;
+    $('t-title').textContent='Block '+blockLabel(ti,b);$('t-facts').innerHTML=fact('Row',sRow[i])+fact('Seat',sNum[i])+fact('Gate',gate(b));
+    $('t-price').textContent=money(price);
+    if(st.held)note('Seat held. This is a demo, so no payment is taken.');
+    else{if(box)btn('go','Upgrade to a skybox · +'+money(VIP_EXTRA),function(){if(!st.busy)goVip()});btn(box?'keep':'go','Keep my seat',function(){st.held=true;showTicket()})}
+  }
+  $('t-bars').innerHTML=bars(i+1+(st.vip?99991:0));ticket.classList.add('show')}
+
+/* ---------- pointer ---------- */
+var ray=new T.Raycaster(),mouse=new T.Vector2();
+function pick(cx,cy){var r=canvas.getBoundingClientRect();mouse.set((cx-r.left)/r.width*2-1,-(cy-r.top)/r.height*2+1);
+  ray.setFromCamera(mouse,cam);var hit=ray.intersectObjects(picks)[0];if(!hit)return-1;
+  return nearestSeat(picks.indexOf(hit.object),hit.point.x,hit.point.y,hit.point.z)}
+function hoverAt(cx,cy){
+  if(st.busy||st.level>=3){setHover(null);tip.style.display='none';canvas.className='';return null}
+  var i=pick(cx,cy),h=null,html='';
+  if(i>=0){var ti=sTier[i],b=sBlock[i];
+    if(st.level===0){var s=blockStand[b],g=stands[s];h={t:'s',s:s,key:'s'+s};
+      html='<div class="k">Stand</div><div class="v">'+standNames[s]+'</div><div class="l"><span class="p">from '+money(g.min)+'</span> · '+g.avail.toLocaleString('en-US')+' seats left</div>'}
+    else if(st.level===1){var bl=blocks[ti*NB+b];h={t:'b',b:ti*NB+b,ti:ti,k:b,key:'b'+ti+'_'+b};
+      html='<div class="k">'+TIERS[ti].name+'</div><div class="v">Block '+blockLabel(ti,b)+'</div><div class="l">'+(bl.avail?'<span class="p">from '+money(bl.min)+'</span> · '+bl.avail+' left':'Sold out')+'</div>'}
+    else if(ti===st.tier&&b===st.block){h={t:'x',i:i,key:'x'+i,sold:sSold[i]};
+      html='<div class="k">Block '+blockLabel(ti,b)+'</div><div class="v">Row '+sRow[i]+' · Seat '+sNum[i]+'</div><div class="l"><span class="p">'+(sSold[i]?'Sold':money(priceOf(ti,b,sRow[i])))+'</span></div>'}}
+  setHover(h);
+  canvas.className=h?(h.sold?'blocked':'point'):'';
+  if(h){tip.innerHTML=html;tip.className='tip'+(h.sold?' soldtip':'');tip.style.display='block';
+    var w=tip.offsetWidth,x=Math.min(window.innerWidth-w-8,Math.max(8,cx+16)),y=Math.max(8,cy-tip.offsetHeight-14);
+    tip.style.transform='translate('+x+'px,'+y+'px)'}else tip.style.display='none';
+  return h}
+function act(h){if(!h||st.busy)return;
+  if(h.t==='s')goStand(h.s);else if(h.t==='b'){if(blocks[h.b].avail)goBlock(h.ti,h.k)}else if(!h.sold)goSeat(h.i)}
+var down=null,pending=null;
+canvas.addEventListener('pointerdown',function(e){down={x:e.clientX,y:e.clientY,az:st.az,moved:false};try{canvas.setPointerCapture(e.pointerId)}catch(_){}});
+canvas.addEventListener('pointermove',function(e){
+  if(down&&(Math.abs(e.clientX-down.x)+Math.abs(e.clientY-down.y)>6))down.moved=true;
+  if(down&&down.moved&&st.level===0&&!st.busy){st.az=down.az-(e.clientX-down.x)*.006;var v=vOverview();cur.p.copy(v[0]);apply();setHover(null);tip.style.display='none';return}
+  pending={x:e.clientX,y:e.clientY}});
+canvas.addEventListener('pointerup',function(e){var d=down;down=null;if(d&&!d.moved)act(hoverAt(e.clientX,e.clientY))});
+canvas.addEventListener('pointerleave',function(){pending=null;setHover(null);tip.style.display='none'});
+$('back').onclick=back;
+window.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.activeElement.tagName!=='INPUT')back()});
+$('tour').onclick=function(){if(st.busy||!N)return;var i,guard=0;do{i=Math.floor(Math.random()*N)}while((sSold[i]||sTier[i]===TIERS.length-1&&TIERS.length>1&&Math.random()<.5)&&++guard<500);
+  closeSetup();var pre=st.level===0?Promise.resolve():goOverview();
+  pre.then(function(){return goStand(blockStand[sBlock[i]])}).then(function(){return goBlock(sTier[i],sBlock[i])}).then(function(){return goSeat(i)})};
+
+/* ---------- stadium setup ---------- */
+var selVenue=$('sel-venue'),selSport=$('sel-sport'),selType=$('sel-type'),setup=$('setup'),setupBtn=$('setup-btn');
+function opt(sel,val,txt){var o=document.createElement('option');o.value=val;o.textContent=txt;sel.appendChild(o)}
+Object.keys(SPORTS).forEach(function(k){opt(selSport,k,SPORTS[k].label)});
+Object.keys(TYPES).forEach(function(k){opt(selType,k,TYPES[k].label)});
+function allVenues(){return REALS.concat(PRESETS,custom)}
+function fillVenues(){selVenue.innerHTML='';
+  [['Real stadiums',REALS],['Generic stadiums',PRESETS],['Your stadiums',custom]].forEach(function(g){if(!g[1].length)return;
+    var og=document.createElement('optgroup');og.label=g[0];g[1].forEach(function(v){opt(og,v.id,v.name)});selVenue.appendChild(og)});selVenue.value=venue.id}
+function loadVenue(resetAz){
+  st.busy=false;tw=null;st.hover=null;st.level=0;st.stand=st.tier=st.block=st.seat=-1;st.vip=false;st.held=false;vip.visible=false;hideTicket();tip.style.display='none';
+  if(resetAz)st.az=0;
+  buildWorld();
+  var R=REALCFG;$('venue-name').textContent=venue.name;
+  $('venue-sub').textContent=R?R.city+' · '+SPORTS[venue.sport].label+' · '+R.cap.toLocaleString('en-US')+' seats · demo, not real ticketing':SPORTS[venue.sport].event;
+  selSport.disabled=selType.disabled=!!R;$('type-row').style.display=R?'none':'';
+  $('facts').textContent=R?R.note+' This model has '+N.toLocaleString('en-US')+' seats against a published capacity of '+R.cap.toLocaleString('en-US')+'. Prices and sold seats are invented, and this demo has no link to the venue.'
+    :'Fictional stadium with '+N.toLocaleString('en-US')+' seats. Prices and sold seats are invented.';
+  document.title=venue.name+' Seat Picker';
+  selSport.value=venue.sport;selType.value=venue.type;selVenue.value=venue.id;$('remove').hidden=!venue.custom;
+  var v=vOverview();cur.p.copy(v[0]);cur.t.copy(v[1]);cur.f=v[2];apply();ui()}
+function closeSetup(){setup.classList.remove('open');setupBtn.setAttribute('aria-expanded','false')}
+setupBtn.onclick=function(){var o=!setup.classList.contains('open');setup.classList.toggle('open',o);setupBtn.setAttribute('aria-expanded',o?'true':'false')};
+selVenue.onchange=function(){var v=allVenues().filter(function(x){return x.id===selVenue.value})[0];if(!v)return;venue={id:v.id,name:v.name,sport:v.sport,type:v.type,custom:!!v.custom,real:!!v.real};loadVenue(true)};
+function changed(){venue.sport=selSport.value;venue.type=selType.value;
+  if(venue.custom){custom.forEach(function(c){if(c.id===venue.id){c.sport=venue.sport;c.type=venue.type}});saveCustom()}
+  loadVenue(false)}
+selSport.onchange=changed;selType.onchange=changed;
+$('add-form').addEventListener('submit',function(e){e.preventDefault();var inp=$('in-name'),name=inp.value.replace(/\s+/g,' ').trim().slice(0,40),note=$('add-note');
+  if(!name){note.textContent='Type a stadium name first, then press Add.';inp.focus();return}
+  var v={id:'c'+Date.now().toString(36),name:name,sport:selSport.value,type:selType.value,custom:true};custom.push(v);saveCustom();
+  venue={id:v.id,name:v.name,sport:v.sport,type:v.type,custom:true};inp.value='';fillVenues();loadVenue(true);
+  note.textContent='Added '+name+' to the Stadium list as '+SPORTS[v.sport].label+', '+TYPES[v.type].label.toLowerCase()+'. It is saved in this browser.'});
+$('remove').onclick=function(){custom=custom.filter(function(c){return c.id!==venue.id});saveCustom();var p=REALS[0];venue={id:p.id,name:p.name,sport:p.sport,type:p.type,real:true};fillVenues();loadVenue(true)};
+
+/* ---------- loop ---------- */
+function size(){var w=window.innerWidth,h=window.innerHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
+window.addEventListener('resize',function(){size();if(!st.busy){var v=st.level===0?vOverview():st.level===1?vStand(st.stand):st.level===2?vBlock(st.tier,st.block):null;if(v){cur.p.copy(v[0]);cur.t.copy(v[1]);apply()}}});
+function frame(now){
+  if(tw){var k=Math.min(1,(now-tw.s)/tw.ms),e=k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+    cur.p.lerpVectors(tw.p0,tw.p1,e);cur.t.lerpVectors(tw.t0,tw.t1,e);cur.f=tw.f0+(tw.f1-tw.f0)*e;apply();
+    if(k>=1){var r=tw.res;tw=null;r()}}
+  if(pending){hoverAt(pending.x,pending.y);pending=null}
+  renderer.render(scene,cam);requestAnimationFrame(frame)}
+size();fillVenues();loadVenue(true);
+if(window.innerWidth>900){setup.classList.add('open');setupBtn.setAttribute('aria-expanded','true')}
+window.__stadium={st:st,goSeat:goSeat,goVip:goVip,count:function(){return N},sold:function(i){return sSold[i]},set:function(s,t){selSport.value=s;selType.value=t;changed()}};
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

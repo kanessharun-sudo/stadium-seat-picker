@@ -196,18 +196,31 @@ function stripes(g,x0,y0,w,h,n,c1,c2){for(var i=0;i<n;i++){g.fillStyle=i%2?c1:c2
 function line(g,x1,y1,x2,y2){g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke()}
 function circ(g,x,y,r,a0,a1){g.beginPath();g.arc(x,y,r,a0===undefined?0:a0,a1===undefined?7:a1);g.stroke()}
 function dot(g,x,y,r){g.beginPath();g.arc(x,y,r,0,7);g.fill()}
+function rrect(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.lineTo(x+w-r,y);g.arc(x+w-r,y+r,r,-PI/2,0);g.lineTo(x+w,y+h-r);g.arc(x+w-r,y+h-r,r,0,PI/2);g.lineTo(x+r,y+h);g.arc(x+r,y+h-r,r,PI/2,PI);g.lineTo(x,y+r);g.arc(x+r,y+r,r,PI,PI*1.5);g.closePath()}
 var SPORTS={
   football:{label:'Football',event:'Cup Final · Saturday, 7:30 pm',A:60,B:41,n:2.6,w:105,h:68,apron:0x356f34,goals:[52.5,7.32,2.44],
     draw:function(g){stripes(g,-52.5,-34,105,68,14,'#3f8f3a','#4a9c42');g.strokeStyle=g.fillStyle='#f4f6f2';g.lineWidth=.24;
       g.strokeRect(-52.2,-33.7,104.4,67.4);line(g,0,-33.7,0,33.7);circ(g,0,0,9.15);dot(g,0,0,.4);
       [-1,1].forEach(function(k){var x=k*52.2;g.strokeRect(k>0?x-16.5:x,-20.15,16.5,40.3);g.strokeRect(k>0?x-5.5:x,-9.16,5.5,18.32);
         dot(g,x-k*11,0,.4);circ(g,x-k*11,0,9.15,k>0?PI-.93:-.93,k>0?PI+.93:.93)})}},
-  cricket:{label:'Cricket',event:'T20 Final · Sunday, 7:00 pm',A:73,B:67,n:2,w:142,h:130,apron:0x3a8038,
+  amfootball:{label:'American football',event:'Championship Game · Sunday, 6:30 pm',A:64,B:35,n:3,D0:7,w:118,h:58,apron:0x356f34,nfl:54.864,
+    draw:function(g){var L=54.864,W=24.384,i;g.fillStyle='#356f34';g.fillRect(-59,-29,118,58);stripes(g,-45.72,-W,91.44,2*W,20,'#3f8f3a','#4a9c42');
+      g.fillStyle='#22406f';g.fillRect(-L,-W,9.144,2*W);g.fillRect(L-9.144,-W,9.144,2*W);
+      g.strokeStyle='#f4f6f2';g.lineWidth=.2;g.strokeRect(-L,-W,2*L,2*W);for(i=-10;i<=10;i++)line(g,i*4.572,-W,i*4.572,W);
+      g.lineWidth=.12;for(i=-49;i<=49;i++){var x=i*.9144;line(g,x,-W+.3,x,-W+.9);line(g,x,W-.9,x,W-.3);line(g,x,-3.1,x,-2.5);line(g,x,2.5,x,3.1)}}},
+  cricket:{label:'Cricket',event:'T20 Final · Sunday, 7:00 pm',A:73,B:67,n:2,D0:4.5,w:142,h:130,apron:0x3a8038,
     draw:function(g){g.save();g.beginPath();g.ellipse(0,0,70,64,0,0,7);g.clip();stripes(g,-70,-64,140,128,14,'#3f8f3a','#4a9c42');g.restore();
       g.strokeStyle='#f4f6f2';g.lineWidth=.45;g.beginPath();g.ellipse(0,0,68,62,0,0,7);g.stroke();
       g.lineWidth=.22;g.setLineDash([1.6,1.6]);g.beginPath();g.arc(10.06,0,27.43,-PI/2,PI/2);g.arc(-10.06,0,27.43,PI/2,PI*1.5);g.closePath();g.stroke();g.setLineDash([]);
       g.fillStyle='#d8c189';g.fillRect(-11.2,-1.53,22.4,3.06);g.lineWidth=.1;[-1,1].forEach(function(k){line(g,k*10.06,-1.32,k*10.06,1.32);line(g,k*8.84,-1.53,k*8.84,1.53)})}},
-  hockey:{label:'Hockey',event:'League Final · Friday, 6:00 pm',A:52,B:34,n:2.6,w:97,h:60.6,apron:0x1f6a52,goals:[45.7,3.66,2.14],
+  icehockey:{label:'Ice hockey',event:'Game 7 · Friday, 7:00 pm',A:31.4,B:13.9,n:4.2,D0:2.4,w:61.4,h:26.4,apron:0x3a3f47,wall:0xf2f4f6,
+    draw:function(g){rrect(g,-30.48,-12.95,60.96,25.9,8.53);g.fillStyle='#f1f6fa';g.fill();g.save();g.clip();
+      g.strokeStyle='#c8202c';g.lineWidth=.3;line(g,0,-13,0,13);g.lineWidth=.08;line(g,-27.13,-13,-27.13,13);line(g,27.13,-13,27.13,13);
+      g.strokeStyle='#2456c8';g.lineWidth=.3;line(g,-7.62,-13,-7.62,13);line(g,7.62,-13,7.62,13);g.lineWidth=.08;circ(g,0,0,4.57);
+      g.strokeStyle='#c8202c';[-1,1].forEach(function(a){[-1,1].forEach(function(b){circ(g,a*21.03,b*6.7,4.57);g.fillStyle='#c8202c';dot(g,a*21.03,b*6.7,.3)});
+        g.fillStyle='rgba(90,150,230,.55)';g.beginPath();g.arc(a*27.13,0,1.83,a>0?PI/2:-PI/2,a>0?PI*1.5:PI/2);g.fill()});
+      g.restore();g.strokeStyle='#d9a800';g.lineWidth=.25;rrect(g,-30.48,-12.95,60.96,25.9,8.53);g.stroke()}},
+  hockey:{label:'Field hockey',event:'League Final · Friday, 6:00 pm',A:52,B:34,n:2.6,w:97,h:60.6,apron:0x1f6a52,goals:[45.7,3.66,2.14],
     draw:function(g){g.fillStyle='#1f6a52';g.fillRect(-48.5,-30.3,97,60.6);g.fillStyle='#2f6fb3';g.fillRect(-45.7,-27.5,91.4,55);
       g.strokeStyle='#f4f6f2';g.lineWidth=.2;g.strokeRect(-45.7,-27.5,91.4,55);line(g,0,-27.5,0,27.5);
       [-1,1].forEach(function(k){line(g,k*22.8,-27.5,k*22.8,27.5);circ(g,k*45.7,0,14.63,k>0?PI/2:-PI/2,k>0?PI*1.5:PI/2)})}},
@@ -216,11 +229,11 @@ var SPORTS={
       g.fillStyle='#356f34';g.fillRect(-90,-48,180,96);oval(46.3);g.fillStyle='#b64a32';g.fill();oval(36.5);g.save();g.clip();stripes(g,-80,-37,160,74,16,'#3f8f3a','#4a9c42');g.restore();
       g.strokeStyle='#f4f6f2';g.lineWidth=.14;for(var i=0;i<=8;i++){oval(36.5+i*1.225);g.stroke()}
       g.lineWidth=.2;g.strokeRect(-45,-30,90,60);line(g,0,-30,0,30);circ(g,0,0,9.15);line(g,42.2,36.5,42.2,46.3)}},
-  tennis:{label:'Tennis',event:'Singles Final · Sunday, 2:00 pm',A:23,B:14,n:4,w:38,h:20,apron:0x24634a,net:12.8,
+  tennis:{label:'Tennis',event:'Singles Final · Sunday, 2:00 pm',A:23,B:14,n:4,D0:5,w:38,h:20,apron:0x24634a,net:12.8,
     draw:function(g){g.fillStyle='#2f7d57';g.fillRect(-19,-10,38,20);g.fillStyle='#2b62a8';g.fillRect(-11.885,-5.485,23.77,10.97);
       g.strokeStyle='#f4f6f2';g.lineWidth=.1;g.strokeRect(-11.885,-5.485,23.77,10.97);line(g,-11.885,-4.115,11.885,-4.115);line(g,-11.885,4.115,11.885,4.115);
       line(g,-6.4,-4.115,-6.4,4.115);line(g,6.4,-4.115,6.4,4.115);line(g,-6.4,0,6.4,0)}},
-  basketball:{label:'Basketball',event:'Finals Game 7 · Friday, 8:00 pm',A:20,B:13,n:4,w:33,h:20,apron:0x30353e,hoops:12.8,
+  basketball:{label:'Basketball',event:'Finals Game 7 · Friday, 8:00 pm',A:20,B:13,n:4,D0:3.5,w:33,h:20,apron:0x30353e,hoops:12.8,
     draw:function(g){g.fillStyle='#b98a50';g.fillRect(-16.5,-10,33,20);stripes(g,-14,-7.5,28,15,28,'#cfa05f','#c99a5b');
       g.strokeStyle='#f4f6f2';g.lineWidth=.1;g.strokeRect(-14,-7.5,28,15);line(g,0,-7.5,0,7.5);circ(g,0,0,1.8);
       [-1,1].forEach(function(k){g.fillStyle='#a8472f';g.fillRect(k>0?14-5.8:-14,-2.45,5.8,4.9);g.strokeRect(k>0?14-5.8:-14,-2.45,5.8,4.9);
@@ -233,31 +246,102 @@ var TYPES={
   stands:{label:'Four stands, open corners',rows:[20,14],boxes:true,roof:true,open:'corners'},
   ground:{label:'Open ground, single tier',rows:[28],boxes:false,roof:false,open:'none'}
 };
-var TIER_NAMES={1:['Main tier'],2:['Lower tier','Upper tier'],3:['Lower tier','Middle tier','Upper tier']};
-var TIER_PRICE={1:[[3200,2200]],2:[[6500,4200],[2600,1800]],3:[[6500,4200],[3800,2600],[1900,1200]]};
-/* Real venues: published capacity, sport, tier count and stand names. Geometry is generated to match those, it is not a survey of the building. */
+var TIER_NAMES={1:['Main tier'],2:['Lower tier','Upper tier'],3:['Lower tier','Middle tier','Upper tier'],4:['Lower tier','Club tier','Upper tier','Top tier']};
+var TIER_PRICE={1:[[3200,2200]],2:[[6500,4200],[2600,1800]],3:[[6500,4200],[3800,2600],[1900,1200]],4:[[6500,4200],[4600,3200],[3000,2100],[1500,1000]]};
+/* Real venues. cap = published capacity. sh = share of seats per tier. top = tiers present in each of 8 sectors
+   (N, NE, E, SE, S, SW, W, NW; N and S are the long sides, 0 means open). roof = sectors with a stand roof.
+   rt = roof type (ring: cantilever over the stands, dome: frame spanning the whole venue, none). rc = share of the stand the roof covers.
+   Geometry is generated from these facts. It is not a survey of the building. */
+var EST=' Tier split and seat colours are estimates.';
+var IN=' Indoor arena, so the roof is drawn as an open frame to keep the bowl visible.';
 var REAL={
-  wembley:{name:'Wembley Stadium',city:'London',sport:'football',cap:90000,share:[.381,.184,.435],tierNames:['Level 1','Club Wembley','Level 5'],n:2.3,roof:true,boxes:true,
-    note:'Three tiers sized to the published split of 34,303 lower, 16,532 middle and 39,165 upper. Seats use the published 50 cm width and 80 cm row depth. Sliding roof shown open.'},
-  campnou:{name:'Spotify Camp Nou',city:'Barcelona',sport:'football',cap:105000,share:[.3,.3,.4],stands:['Tribuna','Gol Nord','Lateral','Gol Sud'],n:2.4,roof:true,boxes:true,
-    note:'Shown as designed, at about 105,000 with the third tier and the roof. In 2026 the ground is still being rebuilt and holds fewer. Tier split is estimated.'},
-  modi:{name:'Narendra Modi Stadium',city:'Ahmedabad',sport:'cricket',cap:132000,share:[.5,.5],stands:['North Side','Adani Pavilion End','South Side','Jio End'],roof:true,boxes:true,
-    note:'Two large tiers in a full bowl. Tier split is estimated at half each.'},
-  chinnaswamy:{name:'M. Chinnaswamy Stadium',city:'Bengaluru',sport:'cricket',cap:33800,share:[.55,.45],A:68,B:62,stands:['North Side','Pavilion End','South Side','BEML End'],roof:true,boxes:false,
-    note:'Capacity uses the BCCI figure of 33,800. Other listings say 40,000. Tier split and roof are estimated.'},
-  jln:{name:'Jawaharlal Nehru Stadium',city:'New Delhi',sport:'athletics',cap:60254,share:[.5,.5],roof:true,boxes:false,
-    note:'Athletics track with a membrane roof over the seating. Tier split is estimated.'},
-  birsa:{name:'Birsa Munda Hockey Stadium',city:'Rourkela',sport:'hockey',cap:20011,share:[1],open:'corners',roof:true,boxes:false,
-    note:'Four separate stands with cantilevered roofs. One tier per stand is an estimate.'},
-  ashe:{name:'Arthur Ashe Stadium',city:'New York',sport:'tennis',cap:23771,share:[.2,.3,.5],tierNames:['Courtside','Loge','Promenade'],n:3,roof:true,boxes:true,
-    note:'Courtside, suite, loge and promenade levels. Level sizes are estimated. Retractable roof shown open.'},
-  msg:{name:'Madison Square Garden',city:'New York',sport:'basketball',cap:19812,share:[.62,.38],tierNames:['100 Level','200 Level'],n:2.6,roof:false,boxes:true,
-    note:'Indoor arena, drawn with the roof removed so you see the bowl. Level sizes are estimated.'}
+  wembley:{g:'f',name:'Wembley Stadium',city:'London',cap:90000,sh:[.381,.184,.435],tn:['Level 1','Club Wembley','Level 5'],n:2.3,rc:.55,seat:['#c8141c','#b01018'],shell:'#d9dde2',
+    note:'Three tiers sized to the published split of 34,303, 16,532 and 39,165. Seats use the published 50 cm width and 80 cm row depth. Sliding roof shown open.'},
+  campnou:{g:'f',name:'Spotify Camp Nou',city:'Barcelona',cap:105000,sh:[.3,.3,.4],st:['Tribuna','Gol Nord','Lateral','Gol Sud'],n:2.4,rc:.5,seat:['#1d3f9a','#a3123a'],
+    note:'Shown as designed at about 105,000 with the third tier and the roof. The pre-rebuild capacity was 99,354 and the ground is still being finished.'+EST},
+  bernabeu:{g:'f',name:'Santiago Bernabéu',city:'Madrid',cap:83186,sh:[.27,.23,.25,.25],n:4.2,rt:'dome',dh:.1,oc:.62,skin:.14,seat:['#1f4fa8','#e9edf2'],shell:'#c5cad2',ext:'solid',
+    note:'Four steep tiers in a near-rectangular bowl under a retractable roof, shown open.'+EST},
+  dortmund:{g:'f',name:'Signal Iduna Park',city:'Dortmund',cap:81365,sh:[.56,.44],n:7,rc:1,seat:['#f5d000','#1c1c1c'],shell:'#e3e3e0',
+    note:'Four straight stands with filled corners and a roof over every seat. The real south stand is one terrace of about 25,000, drawn here as two tiers.'+EST},
+  allianz:{g:'f',name:'Allianz Arena',city:'Munich',cap:75024,sh:[.3,.33,.37],n:2.7,rc:.92,seat:['#8f969e','#767c84'],shell:'#f1f1ee',ext:'solid',
+    note:'Smooth three-tier oval with a full ring roof and a white cushion facade.'+EST},
+  sansiro:{g:'f',name:'San Siro',city:'Milan',cap:80018,sh:[.4,.42,.18],top:'33332333',n:6,rc:1,seat:['#c8141c','#1f4fa8'],shell:'#b9b4aa',
+    note:'Rectangular bowl under a girder roof. The third ring covers three sides only, so one long side stops at the second tier.'+EST},
+  maracana:{g:'f',name:'Maracanã',city:'Rio de Janeiro',cap:78838,sh:[.56,.44],n:2,A:64,B:50,rc:.9,seat:['#2a6fc9','#f2d21b'],shell:'#e6e2d8',
+    note:'Near-circular two-tier bowl with a wide ring roof.'+EST},
+  azteca:{g:'f',name:'Estadio Azteca',city:'Mexico City',cap:87523,sh:[.36,.2,.44],n:2.3,rc:.5,seat:['#b0182a','#d8d8d8'],shell:'#c9c2b4',
+    note:'Deep three-tier bowl with a ring roof.'+EST},
+  oldtrafford:{g:'f',name:'Old Trafford',city:'Manchester',cap:76000,sh:[.45,.25,.3],top:'33321233',n:7,rc:1,seat:['#c8141c','#f2f2f2'],shell:'#cfd3d8',
+    note:'Four straight stands with corner quadrants. One long side stays a single tier, as the real south stand does. The club lists 74,197.'+EST},
+  bombonera:{g:'f',name:'La Bombonera',city:'Buenos Aires',cap:57200,sh:[.34,.33,.33],top:'11333331',n:7,rt:'none',seat:['#1b3f94','#f6c500'],shell:'#e3bd1c',ext:'solid',
+    note:'Three steep stacked tiers on three sides and one flat, low side, which gives the ground its D shape. No roof.'+EST},
+
+  att:{g:'a',name:'AT&T Stadium',city:'Arlington',cap:80000,sh:[.3,.2,.2,.3],n:3.2,rt:'dome',dh:.2,oc:.5,skin:.14,seat:['#33425f','#8f99a8'],shell:'#c9d1da',ext:'solid',
+    note:'Four seating levels under an arched retractable roof, shown open.'+EST},
+  sofi:{g:'a',name:'SoFi Stadium',city:'Inglewood',cap:70000,sh:[.4,.24,.36],n:2.8,rt:'dome',dh:.14,oc:1,skin:.2,seat:['#3a3f47','#5e6672'],shell:'#eef0f2',ext:'solid',
+    note:'Sunken bowl under a fixed translucent canopy.'+EST},
+  lambeau:{g:'a',name:'Lambeau Field',city:'Green Bay',cap:81441,sh:[.74,.26],top:'22222121',rt:'none',seat:['#aeb4ba','#1f5a3a'],shell:'#8a4b3a',ext:'solid',
+    note:'Open single bowl with upper seating added around most of it and the largest deck at one end. No roof.'+EST},
+  arrowhead:{g:'a',name:'Arrowhead Stadium',city:'Kansas City',cap:73426,sh:[.5,.14,.36],top:'33233323',rt:'none',seat:['#c8141c','#e3b528'],shell:'#d9d2c4',
+    note:'Open bowl whose upper deck sweeps high along the sidelines and drops at both ends.'+EST},
+  superdome:{g:'a',name:'Caesars Superdome',city:'New Orleans',cap:73208,sh:[.45,.2,.35],n:2,A:64,B:50,rt:'dome',dh:.3,oc:1,skin:.16,seat:['#6b7078','#b89b4e'],shell:'#9a8a6a',ext:'solid',
+    note:'Circular fixed dome.'+EST},
+  mercedes:{g:'a',name:'Mercedes-Benz Stadium',city:'Atlanta',cap:71000,sh:[.4,.22,.38],n:3.6,rt:'dome',dh:.2,oc:.45,skin:.15,seat:['#b5121b','#26282c'],shell:'#cfd4da',ext:'solid',
+    note:'Angular shell with a retractable roof that opens to a central circle, shown open.'+EST},
+  allegiant:{g:'a',name:'Allegiant Stadium',city:'Las Vegas',cap:66000,sh:[.42,.2,.38],n:2.6,rt:'dome',dh:.15,oc:1,skin:.22,seat:['#1d1f24','#9aa0a8'],shell:'#17181b',ext:'solid',
+    note:'Black oval shell with a fixed translucent roof.'+EST},
+  metlife:{g:'a',name:'MetLife Stadium',city:'East Rutherford',cap:82500,sh:[.42,.2,.38],n:4.5,rt:'none',seat:['#7b828b','#5d646d'],shell:'#9da4ad',
+    note:'Open three-deck rectangle, the largest listed seating capacity in the league. No roof.'+EST},
+  lumen:{g:'a',name:'Lumen Field',city:'Seattle',cap:69000,sh:[.5,.15,.35],top:'32223212',roof:'10001000',rc:.85,seat:['#22355c','#5fb233'],shell:'#c9ced4',
+    note:'Two arched roofs cover the sideline stands only. Both ends are lower and one is almost open.'+EST},
+  usbank:{g:'a',name:'U.S. Bank Stadium',city:'Minneapolis',cap:66655,sh:[.45,.2,.35],n:3.4,rt:'dome',dh:.3,oc:1,skin:.2,seat:['#4b2a7a','#f2c230'],shell:'#2a2d33',ext:'solid',
+    note:'Angular dark shell with a fixed translucent roof.'+EST},
+
+  modi:{g:'c',name:'Narendra Modi Stadium',city:'Ahmedabad',cap:132000,sh:[.5,.5],st:['North Side','Adani Pavilion End','South Side','Jio End'],rc:.42,seat:['#e8742a','#2356a8'],
+    note:'Two large tiers in a full round bowl, the largest cricket ground by capacity.'+EST},
+  mcg:{g:'c',name:'Melbourne Cricket Ground',city:'Melbourne',cap:100024,sh:[.34,.22,.44],A:86,B:74,rc:.5,seat:['#8a9299','#2f5fa0'],st:['Northern Stand','City End','Southern Stand','Punt Road End'],
+    note:'Large round bowl on an oval field, with a ring roof.'+EST},
+  lords:{g:'c',name:"Lord's",city:'London',cap:31100,sh:[.6,.4],top:'21212121',roof:'10101010',A:72,B:64,rc:.6,seat:['#eceff1','#d5dade'],st:['Grand Stand','Nursery End','Mound Stand','Pavilion End'],shell:'#e8e4da',
+    note:'Separate stands of different heights around the ground, with lower stands between the tall ones.'+EST},
+  eden:{g:'c',name:'Eden Gardens',city:'Kolkata',cap:68000,sh:[.55,.45],rc:.5,seat:['#2f6fb3','#e23b3b'],st:['North Side','High Court End','South Side','Pavilion End'],
+    note:'Round two-tier bowl with a ring roof.'+EST},
+  oval:{g:'c',name:'The Oval',city:'London',cap:27500,sh:[.62,.38],top:'12221112',roof:'01110010',rc:.6,seat:['#1f4f8f','#6aa0d8'],st:['North Side','Vauxhall End','South Side','Pavilion End'],
+    note:'One tall curved stand at the Vauxhall End, the pavilion opposite, and low stands along the sides.'+EST},
+  adelaide:{g:'c',name:'Adelaide Oval',city:'Adelaide',cap:53500,sh:[.5,.5],top:'22222000',A:92,B:66,rc:.7,seat:['#1f6f8f','#8fb7c7'],st:['Western Stand','Riverbank Stand','Eastern Stand','Northern Mound'],
+    note:'Three large roofed stands and one open end, where the real ground keeps its grass mound and scoreboard.'+EST},
+  wankhede:{g:'c',name:'Wankhede Stadium',city:'Mumbai',cap:33108,sh:[.5,.5],rc:.7,seat:['#2d6cc0','#f08a24'],st:['North Stand','Tata End','Garware Pavilion','Garware Pavilion End'],
+    note:'Compact round bowl with cantilever roofs.'+EST},
+  chinnaswamy:{g:'c',name:'M. Chinnaswamy Stadium',city:'Bengaluru',cap:33800,sh:[.55,.45],A:68,B:62,rc:.5,seat:['#c0392b','#f2c230'],st:['North Side','Pavilion End','South Side','BEML End'],
+    note:'Capacity uses the BCCI figure of 33,800. Other listings say 40,000.'+EST},
+  optus:{g:'c',name:'Optus Stadium',city:'Perth',cap:61266,sh:[.36,.2,.44],A:88,B:70,rc:.85,seat:['#3b4a5a','#7d8b99'],shell:'#b08d57',ext:'solid',
+    note:'Round multi-tier bowl with a wide halo roof and a bronze facade. The real ground has five tiers, drawn here as three.'+EST},
+  dubai:{g:'c',name:'Dubai International Cricket Stadium',city:'Dubai',cap:25000,sh:[.6,.4],rc:.9,seat:['#2f7fbf','#58a6d8'],shell:'#f1f1ee',ext:'solid',
+    note:'Round bowl under a scalloped ring roof that carries the lights.'+EST},
+
+  bell:{g:'h',name:'Bell Centre',city:'Montreal',cap:21105,sh:[.42,.16,.42],tn:['Reds','Club','Upper'],seat:['#c2141c','#d9dde2'],note:'Steep three-level bowl, the largest in the NHL.'+EST+IN},
+  ska:{g:'h',name:'SKA Arena',city:'Saint Petersburg',cap:22500,sh:[.45,.15,.4],n:2.6,dh:.3,seat:['#1f3f8f','#c8141c'],note:'Round bowl, the largest ice hockey arena by capacity.'+EST+IN},
+  msg:{g:'h',name:'Madison Square Garden',city:'New York',cap:18006,sh:[.62,.38],tn:['100 Level','200 Level'],n:2.8,seat:['#1f5a66','#2f7f8f'],note:'Round two-level bowl. Capacity is the hockey figure.'+EST+IN},
+  united:{g:'h',name:'United Center',city:'Chicago',cap:19717,sh:[.4,.15,.45],tn:['100 Level','Club Level','300 Level'],seat:['#b3131b','#8f0f15'],note:'Three levels with a tall upper deck.'+EST+IN},
+  lca:{g:'h',name:'Little Caesars Arena',city:'Detroit',cap:19515,sh:[.52,.48],seat:['#1d1f24','#3a3d44'],note:'Two-level bowl sunk below street level.'+EST+IN},
+  scotiabank:{g:'h',name:'Scotiabank Arena',city:'Toronto',cap:18800,sh:[.5,.15,.35],tn:['100 Level','200 Level','300 Level'],seat:['#3a3f47','#23305a'],note:'Three-level bowl.'+EST+IN},
+  rogers:{g:'h',name:'Rogers Place',city:'Edmonton',cap:18641,sh:[.5,.15,.35],n:3,seat:['#1f3a6b','#e0762a'],note:'Three-level bowl under a curved shell.'+EST+IN},
+  lanxess:{g:'h',name:'Lanxess Arena',city:'Cologne',cap:18500,sh:[.6,.4],dh:.36,seat:['#c8141c','#e9edf2'],note:'Two-level bowl under a roof hung from a steel arch, drawn here as a taller frame.'+EST+IN},
+  tmobile:{g:'h',name:'T-Mobile Arena',city:'Las Vegas',cap:17500,sh:[.5,.15,.35],seat:['#30343b','#b8a15a'],note:'Three-level bowl.'+EST+IN},
+  climate:{g:'h',name:'Climate Pledge Arena',city:'Seattle',cap:17151,sh:[.56,.44],dh:.5,seat:['#1f3f34','#35584a'],note:'Two-level bowl dug below ground under the original 1962 pitched roof, drawn here as a taller frame.'+EST+IN},
+
+  jln:{g:'o',name:'Jawaharlal Nehru Stadium',city:'New Delhi',sport:'athletics',cap:60254,sh:[.5,.5],rc:.7,note:'Athletics track with a membrane roof over the seating.'+EST},
+  birsa:{g:'o',name:'Birsa Munda Hockey Stadium',city:'Rourkela',sport:'hockey',cap:20011,sh:[1],top:'10101010',cw:.16,rc:.8,seat:['#2f6fb3','#e8742a'],note:'Four separate stands with cantilever roofs.'+EST},
+  ashe:{g:'o',name:'Arthur Ashe Stadium',city:'New York',sport:'tennis',cap:23771,sh:[.2,.3,.5],tn:['Courtside','Loge','Promenade'],n:3,rt:'dome',dh:.16,oc:.5,skin:.12,seat:['#24407a','#3b62a8'],note:'Courtside, suite, loge and promenade levels under a retractable roof, shown open.'+EST},
+  msgb:{g:'o',name:'Madison Square Garden',city:'New York',sport:'basketball',cap:19812,sh:[.62,.38],tn:['100 Level','200 Level'],n:2.6,rt:'dome',seat:['#1f5a66','#2f7f8f'],note:'Capacity is the basketball figure.'+EST+IN}
 };
-var REALS=Object.keys(REAL).map(function(k){return{id:k,name:REAL[k].name,sport:REAL[k].sport,type:'bowl2',real:true}});
+var GROUPS=[['f','Football','football'],['a','American football','amfootball'],['c','Cricket','cricket'],['h','Ice hockey','icehockey'],['o','Other sports',null]];
+Object.keys(REAL).forEach(function(k){var r=REAL[k],g=GROUPS.filter(function(x){return x[0]===r.g})[0];if(!r.sport)r.sport=g[2];if(r.g==='h'&&!r.rt){r.rt='dome';if(!r.dh)r.dh=.2;r.oc=.35;r.skin=0}});
+var REALS=Object.keys(REAL).map(function(k){return{id:k,name:REAL[k].name,sport:REAL[k].sport,type:'bowl2',real:true,g:REAL[k].g}});
 var PRESETS=[
   {id:'p1',name:'Meridian Park',sport:'football',type:'bowl3'},
   {id:'p2',name:'Kaveri Oval',sport:'cricket',type:'bowl2'},
+  {id:'p7',name:'Ironworks Field',sport:'amfootball',type:'horseshoe'},
+  {id:'p8',name:'Frostline Arena',sport:'icehockey',type:'bowl2'},
   {id:'p3',name:'Lakeside Hockey Ground',sport:'hockey',type:'horseshoe'},
   {id:'p4',name:'Summit Athletics Stadium',sport:'athletics',type:'ground'},
   {id:'p5',name:'Harbour Centre Court',sport:'tennis',type:'stands'},
@@ -270,7 +354,8 @@ var custom=loadCustom(),venue={id:'wembley',name:'Wembley Stadium',sport:'footba
 
 var STANDS=['North Stand','East Stand','South Stand','West Stand'];
 var VIP_EXTRA=12000,PITCH=0.56,AISLE=1.5,DD=.85,standNames=STANDS,REALCFG=null;
-var lin=function(a){return a.map(function(v){return Math.pow(v,2.2)})},C_RED=lin([0.80,0.07,0.10]),C_BLUE=lin([0.10,0.22,0.66]),C_SOLD=lin([0.62,0.63,0.66]),C_HI=lin([1,0.56,0.1]),dirty=true;
+function hexLin(h){var c=new THREE.Color(h).convertSRGBToLinear();return[c.r,c.g,c.b]}
+var C_RED=hexLin('#c8141c'),C_BLUE=hexLin('#1c3aa8'),C_SOLD=hexLin('#9d9fa6'),C_HI=hexLin('#ff8a1f'),dirty=true;
 var seed=1;
 function rnd(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}
 var money=function(n){return '₹'+n.toLocaleString('en-IN')};
@@ -281,9 +366,9 @@ renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;rende
 function C(hex){return new T.Color(hex).convertSRGBToLinear()}
 function srgb(tex){tex.encoding=T.sRGBEncoding;return tex}
 var scene=new T.Scene();
-scene.fog=new T.Fog(C(0xd4e2ec),700,3400);
-var cam=new T.PerspectiveCamera(42,1,0.3,6000);
-var hemi=new T.HemisphereLight(C(0xdfe9f7),C(0x6f7a5c),0.62);scene.add(hemi);
+scene.fog=new T.Fog(C(0xd4e2ec),900,3800);
+var cam=new T.PerspectiveCamera(42,1,0.3,7000);
+scene.add(new T.HemisphereLight(C(0xdfe9f7),C(0x6f7a5c),0.62));
 var sun=new T.DirectionalLight(C(0xfff0d2),2.15);sun.castShadow=true;
 (function(){var ms=Math.min(4096,renderer.capabilities.maxTextureSize);sun.shadow.mapSize.set(ms,ms);sun.shadow.bias=-0.0006;sun.shadow.normalBias=0.08})();
 scene.add(sun);scene.add(sun.target);
@@ -293,15 +378,33 @@ scene.add(sun);scene.add(sun.target);
   gr.addColorStop(0,'#2f74c4');gr.addColorStop(.3,'#5a9bdc');gr.addColorStop(.47,'#a9cdea');gr.addColorStop(.52,'#eaf1f4');gr.addColorStop(.56,'#f3ead6');gr.addColorStop(1,'#e6dcc4');
   g.fillStyle=gr;g.fillRect(0,0,4,512);
   var m=new T.MeshBasicMaterial({map:srgb(new T.CanvasTexture(c)),side:T.BackSide,fog:false});m.toneMapped=false;
-  scene.add(new T.Mesh(new T.SphereGeometry(4000,24,16),m));
+  scene.add(new T.Mesh(new T.SphereGeometry(5000,24,16),m));
 })();
-function noiseTex(base,dots,size,rep){var c=document.createElement('canvas');c.width=c.height=size;var g=c.getContext('2d');g.fillStyle=base;g.fillRect(0,0,size,size);
-  var r=7;function rr(){r=(r*16807)%2147483647;return r/2147483647}
-  for(var i=0;i<dots.n;i++){g.fillStyle=dots.c[i%dots.c.length];g.globalAlpha=dots.a;var w=1+rr()*dots.s;g.fillRect(rr()*size,rr()*size,w,w)}
-  var t=srgb(new T.CanvasTexture(c));t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(rep,rep);t.anisotropy=renderer.capabilities.getMaxAnisotropy();return t}
-var ground=new T.Mesh(new T.PlaneGeometry(8000,8000),new T.MeshLambertMaterial({map:noiseTex('#4c8334',{n:5000,c:['#3a6f28','#64963f','#447a30','#5a8c3a'],a:.35,s:5},512,260)}));
-ground.rotation.x=-PI/2;ground.position.y=-.05;ground.receiveShadow=true;scene.add(ground);
+function canvasTex(size,draw,rx,ry){var c=document.createElement('canvas');c.width=c.height=size;draw(c.getContext('2d'),size);
+  var t=srgb(new T.CanvasTexture(c));t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(rx||1,ry||rx||1);t.anisotropy=renderer.capabilities.getMaxAnisotropy();return t}
+function lcg(s){return function(){s=(s*16807)%2147483647;return s/2147483647}}
+/* ground: broad colour patches so the park does not read as one flat green */
+(function(){var tex=canvasTex(1024,function(g,n){var r=lcg(5);g.fillStyle='#4f8636';g.fillRect(0,0,n,n);
+    var cols=['#467c30','#5c9440','#3f742c','#659a47','#528a39'];
+    for(var i=0;i<260;i++){var x=r()*n,y=r()*n,rad=30+r()*120,gr=g.createRadialGradient(x,y,0,x,y,rad);gr.addColorStop(0,cols[i%5]);gr.addColorStop(1,'rgba(79,134,54,0)');
+      g.globalAlpha=.55;g.fillStyle=gr;for(var a=-1;a<=1;a++)for(var b=-1;b<=1;b++){g.setTransform(1,0,0,1,a*n,b*n);g.fillRect(x-rad,y-rad,rad*2,rad*2)}}
+    g.setTransform(1,0,0,1,0,0);g.globalAlpha=.25;for(i=0;i<9000;i++){g.fillStyle=i%2?'#3c6f2a':'#6fa24c';g.fillRect(r()*n,r()*n,2,2)}},14);
+  var ground=new T.Mesh(new T.PlaneGeometry(10000,10000),new T.MeshLambertMaterial({map:tex}));ground.rotation.x=-PI/2;ground.position.y=-.05;ground.receiveShadow=true;scene.add(ground);
+  /* distant hills close the horizon */
+  var r=lcg(9),pos=[],idx=[],n=160,h=0;for(var j=0;j<=n;j++){var a=j/n*PI*2;h=j===n?pos[4]:Math.max(40,Math.min(230,(h||120)+(r()-.5)*90));
+    pos.push(Math.cos(a)*3300,-2,Math.sin(a)*3300,Math.cos(a)*4100,h,Math.sin(a)*4100,Math.cos(a)*4700,-2,Math.sin(a)*4700);
+    if(j<n){var b=j*3;idx.push(b,b+1,b+3,b+1,b+4,b+3,b+1,b+2,b+4,b+2,b+5,b+4)}}
+  var hg=new T.BufferGeometry();hg.setAttribute('position',new T.Float32BufferAttribute(pos,3));hg.setIndex(idx);hg.computeVertexNormals();
+  scene.add(new T.Mesh(hg,new T.MeshLambertMaterial({color:C(0x4f7a52),side:T.DoubleSide})));
+})();
 function lam(color,opts){var o=opts||{};o.color=C(color);o.side=T.DoubleSide;return new T.MeshLambertMaterial(o)}
+function flat(m,level){m.material.polygonOffset=true;m.material.polygonOffsetFactor=-level;m.material.polygonOffsetUnits=-level*2;m.castShadow=false;m.receiveShadow=true;return m}
+function merge(list){var pos=[],nor=[];list.forEach(function(g){g=g.index?g.toNonIndexed():g;Array.prototype.push.apply(pos,g.attributes.position.array);Array.prototype.push.apply(nor,g.attributes.normal.array)});
+  var o=new T.BufferGeometry();o.setAttribute('position',new T.Float32BufferAttribute(pos,3));o.setAttribute('normal',new T.Float32BufferAttribute(nor,3));return o}
+function ball(x,y,z,s){var g=new T.IcosahedronGeometry(s,1);g.translate(x,y,z);return g}
+function cone(r,h,y){var g=new T.ConeGeometry(r,h,7);g.translate(0,y,0);return g}
+var G_CROWN=merge([ball(0,0,0,1),ball(.62,.3,.18,.68),ball(-.5,.22,-.36,.66)]),G_FIR=merge([cone(1,2.1,1.05),cone(.76,1.8,2.2),cone(.5,1.5,3.2)]),
+    G_CAR=(function(){var a=new T.BoxGeometry(4.3,.75,1.8);a.translate(0,.62,0);var b=new T.BoxGeometry(2.3,.6,1.6);b.translate(-.2,1.25,0);return merge([a,b])})();
 /* moulded shell seat: a curved L profile swept across the seat width, smooth-shaded */
 function seatGeo(){
   var P=[[-.23,.395],[-.04,.375],[.13,.395],[.215,.5],[.245,.86],[.21,.87],[.185,.53],[.11,.435],[-.04,.415],[-.23,.435]],n=P.length,w=.22,pos=[],nor=[];
@@ -321,30 +424,38 @@ function seatMat(color){return new T.MeshPhongMaterial({color:color?C(color):0xf
 var vip=new T.Group();(function(){var m=seatMat(0x1c1f25);for(var j=0;j<4;j++){var g=new T.Mesh(seatGeo(),m);g.scale.set(1.5,1.25,1.5);g.position.set((j-1.5)*1.05,0,0);vip.add(g)}
   var rail=new T.Mesh(new T.BoxGeometry(6,.06,.06),lam(0x2a2d33));rail.position.set(0,.95,-.75);vip.add(rail)})();
 vip.visible=false;scene.add(vip);
-var ledTex=(function(){var c=document.createElement('canvas');c.width=1024;c.height=32;var g=c.getContext('2d');g.fillStyle='#0b1220';g.fillRect(0,0,1024,32);
-  var cols=['#ff8a1f','#f4f6f2','#2b62d8','#f4f6f2','#e23b3b','#f4f6f2','#17a673','#f4f6f2'];for(var i=0;i<8;i++){g.fillStyle=cols[i];g.fillRect(i*128+6,5,116,22)}
-  var t=srgb(new T.CanvasTexture(c));t.wrapS=T.RepeatWrapping;return t})();
+var ledTex=canvasTex(1024,function(g){g.fillStyle='#0b1220';g.fillRect(0,0,1024,1024);var cols=['#ff8a1f','#f4f6f2','#2b62d8','#f4f6f2','#e23b3b','#f4f6f2','#17a673','#f4f6f2'];
+  for(var i=0;i<8;i++){g.fillStyle=cols[i];g.fillRect(i*128+6,160,116,704)}});
+/* distance stand-in for the seats: one ribbon per row with a mip-mapped seat pattern, so far views do not shimmer */
+var carpetTex=canvasTex(64,function(g){g.fillStyle='#474747';g.fillRect(0,0,64,64);g.fillStyle='#e9e9e9';g.fillRect(6,4,52,56);g.fillStyle='#ffffff';g.fillRect(6,30,52,30)});
+var lotTex=canvasTex(256,function(g){g.fillStyle='#4d5259';g.fillRect(0,0,256,256);g.strokeStyle='#d9dbd6';g.lineWidth=3;
+  for(var i=0;i<=8;i++){g.beginPath();g.moveTo(i*32,20);g.lineTo(i*32,108);g.moveTo(i*32,148);g.lineTo(i*32,236);g.stroke()}g.beginPath();g.moveTo(0,64);g.lineTo(256,64);g.moveTo(0,192);g.lineTo(256,192);g.stroke()},1);
+var paveTex=canvasTex(256,function(g){var r=lcg(3);g.fillStyle='#c9c5bb';g.fillRect(0,0,256,256);for(var i=0;i<1600;i++){g.fillStyle=i%2?'#b7b3a8':'#d8d4ca';g.globalAlpha=.5;g.fillRect(r()*256,r()*256,3,3)}
+  g.globalAlpha=.35;g.strokeStyle='#a9a59a';g.lineWidth=2;for(i=0;i<=4;i++){g.beginPath();g.moveTo(i*64,0);g.lineTo(i*64,256);g.moveTo(0,i*64);g.lineTo(256,i*64);g.stroke()}},1);
 
 /* ---------- per-venue world (rebuilt on every change) ---------- */
-var world=null,A,B,EXP,NB,TIERS,tb,blockStand,openBlock,segOpen,SEGS=480,dOut,hTop,box,priceTable;
-var X,Y,Z,NX,NZ,sTier,sBlock,sRow,sNum,sSold,blocks,stands,N,baseCol,col,seats,grid,picks;
+var world=null,A,B,EXP,NB,TIERS,tb,blockStand,topK,segTop,segRoof,SEGS=480,D0,dOut,hTop,dOutV,hTopV,box,priceTable,lod=false;
+var X,Y,Z,NX,NZ,sTier,sBlock,sRow,sNum,sSold,blocks,stands,standBlocks,N,baseCol,col,seats,grid,picks,carpet,cCol,cBase,cS,cN;
 function sp(v){return (v<0?-1:1)*Math.pow(Math.abs(v),EXP)}
 function pt(d,t,o){o.x=(A+d)*sp(Math.cos(t));o.z=(B+d)*sp(Math.sin(t));return o}
-function bandGeo(dA,hA,dB,hB,masked,urep){
+function dOf(x,z){var lo=-A*.9,hi=6000,n=2/EXP;for(var i=0;i<22;i++){var m=(lo+hi)/2;if(Math.pow(Math.abs(x)/(A+m),n)+Math.pow(Math.abs(z)/(B+m),n)>1)lo=m;else hi=m}return lo}
+function bandGeo(dA,hA,dB,hB,mask,urep){
   var pos=new Float32Array((SEGS+1)*6),uv=new Float32Array((SEGS+1)*4),idx=[],p={x:0,z:0};
   for(var j=0;j<=SEGS;j++){var t=j/SEGS*PI*2;
     pt(dA,t,p);pos[j*6]=p.x;pos[j*6+1]=hA;pos[j*6+2]=p.z;
     pt(dB,t,p);pos[j*6+3]=p.x;pos[j*6+4]=hB;pos[j*6+5]=p.z;
     uv[j*4]=uv[j*4+2]=j/SEGS*(urep||1);uv[j*4+1]=0;uv[j*4+3]=1;
-    if(j<SEGS&&!(masked&&segOpen[j])){var a=j*2;idx.push(a,a+1,a+2,a+1,a+3,a+2)}}
+    if(j<SEGS&&!(mask&&!mask(j))){var a=j*2;idx.push(a,a+1,a+2,a+1,a+3,a+2)}}
   var g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(pos,3));g.setAttribute('uv',new T.BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g}
-function band(dA,hA,dB,hB,mat,masked,flat,urep){var m=new T.Mesh(bandGeo(dA,hA,dB,hB,masked,urep),mat);if(!flat){m.castShadow=true;m.receiveShadow=true}world.add(m);return m}
+function band(dA,hA,dB,hB,mat,mask,noShadow,urep){var m=new T.Mesh(bandGeo(dA,hA,dB,hB,mask,urep),mat);if(!noShadow){m.castShadow=true;m.receiveShadow=true}world.add(m);return m}
+function mT(i){return function(j){return segTop[j]>i}}
+function mV(v){return function(j){return segTop[j]===v}}
 /* real stepped terrace: one riser and one tread per row */
-function stepGeo(t){var rows=t.rows,ring=SEGS+1,pos=new Float32Array(rows*4*ring*3),idx=[],p={x:0,z:0},q={x:0,z:0};
+function stepGeo(t,mask){var rows=t.rows,ring=SEGS+1,pos=new Float32Array(rows*4*ring*3),idx=[],p={x:0,z:0},q={x:0,z:0};
   for(var r=0;r<rows;r++){var d0=t.d0+r*t.dd-.45,d1=d0+t.dd,h=t.h0+r*t.dh-.02,hb=h-t.dh-(r?0:.5);
     for(var j=0;j<=SEGS;j++){var a=j/SEGS*PI*2;pt(d0,a,p);pt(d1,a,q);var b=r*4*ring+j,o=b*3;
       pos[o]=p.x;pos[o+1]=hb;pos[o+2]=p.z;o+=ring*3;pos[o]=p.x;pos[o+1]=h;pos[o+2]=p.z;o+=ring*3;pos[o]=p.x;pos[o+1]=h;pos[o+2]=p.z;o+=ring*3;pos[o]=q.x;pos[o+1]=h;pos[o+2]=q.z;
-      if(j<SEGS&&!segOpen[j]){var c=b+ring,e=b+2*ring,f=b+3*ring;idx.push(b,c,b+1,c,c+1,b+1,e,f,e+1,f,f+1,e+1)}}}
+      if(j<SEGS&&mask(j)){var c=b+ring,e=b+2*ring,f=b+3*ring;idx.push(b,c,b+1,c,c+1,b+1,e,f,e+1,f,f+1,e+1)}}}
   var g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();return g}
 function boxes(n,mat){var m=new T.InstancedMesh(new T.BoxGeometry(1,1,1),mat,n);m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;return m}
 function discGeo(d,h){var pos=[0,h,0],idx=[],p={x:0,z:0};
@@ -353,14 +464,18 @@ function discGeo(d,h){var pos=[0,h,0],idx=[],p={x:0,z:0};
 function gkey(ti,x,z){return ti*4194304+Math.floor((x+900)/3)*2048+Math.floor((z+900)/3)}
 function priceOf(ti,k,row){var long=blockStand[k]%2===0?0:1,base=priceTable[ti][long],t=TIERS[ti];
   return Math.round(base*(1+.22*(t.rows-row)/t.rows)/50)*50}
+function hasBox(k){return !!box&&topK[k]>1}
 
 function buildWorld(){
-  if(world){scene.remove(world);world.traverse(function(o){if(o.geometry)o.geometry.dispose();if(o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}});
+  if(world){scene.remove(world);world.traverse(function(o){if(o.geometry&&o.geometry!==G_CROWN&&o.geometry!==G_FIR&&o.geometry!==G_CAR)o.geometry.dispose();
+      if(o.material){var mp=o.material.map;if(mp&&mp!==ledTex&&mp!==carpetTex&&mp!==lotTex&&mp!==paveTex)mp.dispose();o.material.dispose()}});
     if(picks)picks.forEach(function(m){m.geometry.dispose();m.material.dispose()})}
   world=new T.Group();scene.add(world);
-  var S=SPORTS[venue.sport],R=venue.real?REAL[venue.id]:null,TY=R?{rows:R.share,boxes:R.boxes,roof:R.roof,open:R.open||'none'}:TYPES[venue.type];
-  REALCFG=R;A=R&&R.A||S.A;B=R&&R.B||S.B;EXP=2/(R&&R.n||S.n);
-  PITCH=R?.5:.56;AISLE=R?1.2:1.5;DD=R?.8:.85;standNames=R&&R.stands||STANDS;
+  var R=venue.real?REAL[venue.id]:null,S=SPORTS[venue.sport],TY=R?null:TYPES[venue.type];
+  var nT=R?R.sh.length:TY.rows.length,rt=R?(R.rt||'ring'):(TY.roof?'ring':'none'),rc=R&&R.rc||.5,boxOK=R?nT>1&&R.g!=='h'&&R.sport!=='basketball':TY.boxes;
+  REALCFG=R;A=R&&R.A||S.A;B=R&&R.B||S.B;EXP=2/(R&&R.n||S.n);D0=R&&R.D0||S.D0||6;
+  PITCH=R?.5:.56;AISLE=R?1.2:1.5;DD=R?.8:.85;standNames=R&&R.st||STANDS;
+  var CM=hexLin(R&&R.seat?R.seat[0]:'#c8141c'),CA=hexLin(R&&R.seat?R.seat[1]:'#1c3aa8');
   seed=0;(venue.sport+'|'+(R?venue.id:venue.type)).split('').forEach(function(ch){seed=(seed*31+ch.charCodeAt(0))|0});
 
   /* block boundaries: equal arc length on a reference row */
@@ -369,126 +484,172 @@ function buildWorld(){
     var tot=cum[M];NB=Math.max(12,Math.min(48,Math.round(tot/16.5/4)*4));tb=[0];var j2=0;
     for(var k=1;k<NB;k++){var target=k*tot/NB;while(cum[j2+1]<target)j2++;tb.push((j2+(target-cum[j2])/(cum[j2+1]-cum[j2]))/M*PI*2)}
     tb.push(PI*2)})();
-  blockStand=[];openBlock=[];
-  for(var k0=0;k0<NB;k0++){var tc=(tb[k0]+tb[k0+1])/2,c=Math.cos(tc),s=Math.sin(tc),stn=Math.abs(s)>Math.abs(c)?(s>0?2:0):(c>0?1:3);blockStand.push(stn);
-    var op=false;if(TY.open==='end')op=stn===1;
-    else if(TY.open==='corners')for(var q=0;q<4;q++){var ct=PI/4+q*PI/2;if(ct>=tb[k0]&&ct<tb[k0+1])op=true}
-    openBlock.push(op)}
-  segOpen=[];(function(){var k=0;for(var j=0;j<SEGS;j++){var tm=(j+.5)/SEGS*PI*2;while(tb[k+1]<tm)k++;segOpen.push(openBlock[k])}})();
-  function rowSeats(dd){var n=0,p={x:0,z:0};for(var k=0;k<NB;k++){if(openBlock[k])continue;var len=0,px=0,pz=0;
+  /* which tiers and roofs exist in each block, from the 8-sector spec */
+  var full=''+nT,topS=R?(R.top||full+full+full+full+full+full+full+full):
+      TY.open==='end'?full+full+'0'+full+full+full+full+full:TY.open==='corners'?full+'0'+full+'0'+full+'0'+full+'0':full+full+full+full+full+full+full+full,
+    roofS=rt!=='ring'?'00000000':(R&&R.roof||'11111111'),cw=R?(R.cw||.36):.14;
+  blockStand=[];topK=[];var roofK=[];
+  for(var k0=0;k0<NB;k0++){var tc=(tb[k0]+tb[k0+1])/2,c=Math.cos(tc),s=Math.sin(tc),stn=Math.abs(s)>Math.abs(c)?(s>0?2:0):(c>0?1:3),ci=-1;blockStand.push(stn);
+    for(var q=0;q<4;q++)if(Math.abs(tc-(PI/4+q*PI/2))<cw)ci=q;
+    var sec=ci>=0?[3,5,7,1][ci]:[0,2,4,6][stn];topK.push(Math.min(nT,+topS[sec]));roofK.push(roofS[sec]==='1'&&topK[k0]>0)}
+  segTop=[];segRoof=[];(function(){var k=0;for(var j=0;j<SEGS;j++){var tm=(j+.5)/SEGS*PI*2;while(tb[k+1]<tm)k++;segTop.push(topK[k]);segRoof.push(roofK[k])}})();
+  function segAt(t){return Math.min(SEGS-1,Math.max(0,Math.floor(t/(PI*2)*SEGS)))}
+  function rowSeats(dd,i){var n=0,p={x:0,z:0};for(var k=0;k<NB;k++){if(topK[k]<=i)continue;var len=0,px=0,pz=0;
     for(var j=0;j<=16;j++){pt(dd,tb[k]+(tb[k+1]-tb[k])*j/16,p);if(j)len+=Math.hypot(p.x-px,p.z-pz);px=p.x;pz=p.z}
     n+=Math.max(0,Math.floor((len-AISLE)/PITCH))}return n}
 
   /* tiers: fixed row counts for generic types, rows fitted to the real capacity for real venues */
-  var nT=TY.rows.length,d=6,h=1.2,rise=[.36,.5,.62],names=R&&R.tierNames||TIER_NAMES[nT];TIERS=[];box=null;priceTable=TIER_PRICE[nT];
-  TY.rows.forEach(function(rows,i){
-    if(R){var want=R.cap*R.share[i],got=0;rows=0;while(got<want&&rows<90){var add=rowSeats(d+rows*DD);if(rows>3&&got+add/2>want)break;got+=add;rows++}}
-    var dh=nT===1?.42:rise[i+(nT===2&&i===1?1:0)],t={name:names[i],rows:rows,d0:d,dd:DD,h0:h,dh:dh};
+  var d=D0,h=1.2,rise=nT===4?[.36,.46,.56,.66]:[.36,.5,.62],names=R&&R.tn||TIER_NAMES[nT];TIERS=[];box=null;priceTable=TIER_PRICE[nT];
+  for(var i0=0;i0<nT;i0++){var rows=R?0:TY.rows[i0];
+    if(R){var want=R.cap*R.sh[i0],got=0;while(got<want&&rows<110){var add=rowSeats(d+rows*DD,i0);if(!add)break;if(rows>3&&got+add/2>want)break;got+=add;rows++}rows=Math.max(rows,3)}
+    var dh=nT===1?.42:rise[i0+(nT===2&&i0===1?1:0)],t={name:names[i0],rows:rows,d0:d,dd:DD,h0:h,dh:dh};
     t.d1=d+(rows-1)*DD;t.h1=h+(rows-1)*dh;TIERS.push(t);
-    if(i===0&&TY.boxes&&nT>1){box={d:t.d1,h:t.h1};d=t.d1+3.15;h=t.h1+3.74}else{d=t.d1+3.3;h=t.h1+3.5}});
-  var last=TIERS[nT-1];dOut=last.d1+1.7;hTop=last.h1+2.7;
+    if(i0===0&&boxOK&&nT>1){box={d:t.d1,h:t.h1};d=t.d1+3.15;h=t.h1+3.74}else{d=t.d1+3.3;h=t.h1+3.5}}
+  dOutV=[0];hTopV=[0];TIERS.forEach(function(t){dOutV.push(t.d1+1.7);hTopV.push(t.h1+2.7)});dOut=dOutV[nT];hTop=hTopV[nT];
+  var M_CONC=lam(0xa7abb1),M_DARK=lam(0x2f3745),M_WHITE=lam(0xf2f1ec),M_STEEL=lam(0xdfe3e8),
+      M_LED=new T.MeshBasicMaterial({map:ledTex,side:T.DoubleSide}),M_LIGHT=new T.MeshBasicMaterial({color:0xfff6dc,side:T.DoubleSide}),
+      glass=function(op){return lam(0xa9d6ec,{transparent:true,opacity:op,depthWrite:false})},o3=new T.Object3D(),pa={x:0,z:0},pb={x:0,z:0};
+  M_LIGHT.toneMapped=false;
 
-  /* park */
-  band(dOut,.04,dOut+24,.04,new T.MeshLambertMaterial({map:noiseTex('#cbc7bd',{n:1800,c:['#b5b1a6','#dad6cc'],a:.5,s:3},256,1),side:T.DoubleSide}),false,false,90).castShadow=false;
-  band(dOut+38,.05,dOut+45,.05,lam(0x474c54)).castShadow=false;
-  band(dOut+41.3,.06,dOut+41.7,.06,lam(0xe6e2d2),false,true);
-  band(dOut+152,.05,dOut+157,.05,lam(0xd8d2c0)).castShadow=false;
-  var roadStart=A+dOut+34;
-  for(var q1=0;q1<4;q1++){var ang=PI/4+q1*PI/2+.12,L=700,r=new T.Mesh(new T.PlaneGeometry(L,7),lam(0x474c54));r.rotation.x=-PI/2;r.rotation.z=-ang;r.receiveShadow=true;
-    r.position.set(Math.cos(ang)*(roadStart+L/2),.045,Math.sin(ang)*(roadStart+L/2));world.add(r)}
-  (function trees(){var n=1500,crown=new T.InstancedMesh(new T.IcosahedronGeometry(1,1),new T.MeshLambertMaterial({color:0xffffff}),n*2),
-      trunk=new T.InstancedMesh(new T.CylinderGeometry(.35,.5,1,6),lam(0x5b4631),n),o=new T.Object3D(),cc=new T.Color(),p={x:0,z:0},i=0;
-    while(i<n){var t=rnd()*PI*2,dd=dOut+30+Math.pow(rnd(),1.5)*900;
-      if(Math.abs(dd-dOut-41.5)<8||Math.abs(dd-dOut-154.5)<6)continue;pt(dd,t,p);var skip=false;
-      for(var q2=0;q2<4;q2++){var a2=PI/4+q2*PI/2+.12,cs=Math.cos(a2),sn=Math.sin(a2);if(p.x*cs+p.z*sn>roadStart-10&&Math.abs(p.x*sn-p.z*cs)<9)skip=true}
-      if(skip)continue;
-      var sz=2.6+rnd()*3.6,th=sz*1.1;o.rotation.set(0,rnd()*6,0);
-      o.position.set(p.x,th/2,p.z);o.scale.set(sz*.3,th,sz*.3);o.updateMatrix();trunk.setMatrixAt(i,o.matrix);
-      o.position.set(p.x,th+sz*.75,p.z);o.scale.set(sz,sz*1.05,sz);o.updateMatrix();crown.setMatrixAt(i*2,o.matrix);
-      o.position.set(p.x+(rnd()-.5)*sz*.9,th+sz*1.45,p.z+(rnd()-.5)*sz*.9);o.scale.set(sz*.68,sz*.7,sz*.68);o.updateMatrix();crown.setMatrixAt(i*2+1,o.matrix);
-      cc.setHSL(.26+rnd()*.07,.48,.2+rnd()*.1).convertSRGBToLinear();crown.setColorAt(i*2,cc);cc.offsetHSL(0,0,.035);crown.setColorAt(i*2+1,cc);i++}
-    crown.castShadow=trunk.castShadow=true;crown.frustumCulled=trunk.frustumCulled=false;world.add(crown);world.add(trunk)})();
+  /* ---- surroundings ---- */
+  (function park(){var asph=function(){return lam(0x474c54)},white=function(){return lam(0xe9e6d8)},ringD=dOut+44.5,roadStart=A+dOut+36,lots=[];
+    flat(band(dOut+2.1,.12,dOut+29,.12,new T.MeshLambertMaterial({map:paveTex,side:T.DoubleSide}),null,true,110),1);
+    flat(band(D0-.7,.1,dOut+2.2,.1,new T.MeshLambertMaterial({map:paveTex,side:T.DoubleSide}),mV(0),true,110),1);
+    flat(band(ringD-4.5,.16,ringD+4.5,.16,asph(),null,true),2);flat(band(ringD-.2,.2,ringD+.2,.2,white(),null,true),3);
+    for(var q=0;q<4;q++){var ang=PI/4+q*PI/2+.12,L=3000,cs=Math.cos(ang),sn=Math.sin(ang);
+      [[9,.16,asph(),2],[.4,.2,white(),3]].forEach(function(a){var r=flat(new T.Mesh(new T.PlaneGeometry(L,a[0]),a[2]),a[3]);r.rotation.x=-PI/2;r.rotation.z=-ang;r.position.set(cs*(roadStart+L/2),a[1],sn*(roadStart+L/2));world.add(r)})}
+    /* four car parks on the axes, with cars */
+    var cars=new T.InstancedMesh(G_CAR,new T.MeshLambertMaterial({color:0xffffff}),4*6*30),nc=0,cc=new T.Color(),carCols=[0xd9dbe0,0x2a2d33,0x8a1f22,0x27457a,0x9aa0a8,0x1f3d2e,0xe8e2d0];
+    for(q=0;q<4;q++){var a=q*PI/2,ca=Math.cos(a),sa=Math.sin(a),dist=(q%2?B:A)+dOut+49+62,cx=ca*dist,cz=sa*dist,lw=96,ll=150;lots.push([cx,cz,ca,sa,lw/2+6,ll/2+6]);
+      var tex=lotTex.clone();tex.needsUpdate=true;tex.repeat.set(3,6);var lot=flat(new T.Mesh(new T.PlaneGeometry(lw,ll),new T.MeshLambertMaterial({map:tex})),2);
+      lot.rotation.x=-PI/2;lot.rotation.z=-a;lot.position.set(cx,.16,cz);world.add(lot);
+      for(var r=0;r<6;r++)for(var c2=0;c2<30;c2++){if(rnd()<.34)continue;var lx=(r-2.5)*16+(r%2?-3.4:3.4),lz=(c2-14.5)*4.9;
+        o3.position.set(cx+lx*ca-lz*sa,.18,cz+lx*sa+lz*ca);o3.rotation.set(0,-a,0);o3.scale.set(1,1,1);o3.updateMatrix();cars.setMatrixAt(nc,o3.matrix);
+        cc.setHex(carCols[Math.floor(rnd()*carCols.length)]).convertSRGBToLinear();cars.setColorAt(nc++,cc)}}
+    cars.count=nc;cars.castShadow=true;cars.receiveShadow=true;cars.frustumCulled=false;world.add(cars);
+    /* trees: avenues along the roads, groves in the park, a few singles */
+    var P=[];function bad(x,z,dd){if(dd<dOut+31||Math.abs(dd-ringD)<8)return true;
+      for(var i=0;i<4;i++){var a2=PI/4+i*PI/2+.12,cs=Math.cos(a2),sn=Math.sin(a2);if(x*cs+z*sn>roadStart-8&&Math.abs(x*sn-z*cs)<7.5)return true;
+        var l=lots[i],ux=(x-l[0])*l[2]+(z-l[1])*l[3],uz=-(x-l[0])*l[3]+(z-l[1])*l[2];if(Math.abs(ux)<l[4]&&Math.abs(uz)<l[5])return true}return false}
+    function add(x,z,force){if(force||!bad(x,z,dOf(x,z)))P.push(x,z)}
+    var per=0,px=0,pz=0,j;for(j=0;j<=240;j++){pt(ringD,j/240*PI*2,pa);if(j)per+=Math.hypot(pa.x-px,pa.z-pz);px=pa.x;pz=pa.z}
+    var na=Math.round(per/12);for(j=0;j<na;j++){var t=j/na*PI*2;pt(ringD-8.2,t,pa);add(pa.x,pa.z);pt(ringD+8.2,t,pa);add(pa.x,pa.z)}
+    for(q=0;q<4;q++){var ang2=PI/4+q*PI/2+.12,cs2=Math.cos(ang2),sn2=Math.sin(ang2);for(var u=roadStart+16;u<roadStart+1100;u+=15)[-9.5,9.5].forEach(function(o){add(cs2*u-sn2*o,sn2*u+cs2*o,true)})}
+    for(j=0;j<60;j++){var ta=rnd()*PI*2,td=dOut+70+Math.pow(rnd(),1.4)*1100,n=16+Math.floor(rnd()*34),rad=22+rnd()*46;pt(td,ta,pa);
+      for(var m=0;m<n;m++){var rr=Math.sqrt(rnd())*rad,aa=rnd()*PI*2;add(pa.x+Math.cos(aa)*rr,pa.z+Math.sin(aa)*rr)}}
+    for(j=0;j<260;j++){pt(dOut+60+rnd()*1300,rnd()*PI*2,pa);add(pa.x,pa.z)}
+    var nt=P.length/2,crown=new T.InstancedMesh(G_CROWN,new T.MeshLambertMaterial({color:0xffffff}),nt),fir=new T.InstancedMesh(G_FIR,new T.MeshLambertMaterial({color:0xffffff}),nt),
+        trunk=new T.InstancedMesh(new T.CylinderGeometry(.5,.7,1,6),lam(0x5b4631),nt),a1=0,a2c=0;
+    for(j=0;j<nt;j++){var x=P[j*2],z=P[j*2+1],isFir=rnd()<.22,hgt=isFir?7+rnd()*6:5.5+rnd()*5,tr=isFir?hgt*.18:hgt*.42;
+      o3.rotation.set(0,rnd()*6,0);o3.position.set(x,tr/2,z);o3.scale.set(.42,tr,.42);o3.updateMatrix();trunk.setMatrixAt(j,o3.matrix);
+      if(isFir){var sc=hgt/4.2;o3.position.set(x,tr*.7,z);o3.scale.set(sc*1.5,sc,sc*1.5);o3.updateMatrix();fir.setMatrixAt(a2c,o3.matrix);cc.setHSL(.33+rnd()*.04,.42,.15+rnd()*.06).convertSRGBToLinear();fir.setColorAt(a2c++,cc)}
+      else{var cr=hgt*.34;o3.position.set(x,tr+cr*.78,z);o3.scale.set(cr,cr*(.9+rnd()*.25),cr);o3.updateMatrix();crown.setMatrixAt(a1,o3.matrix);cc.setHSL(.25+rnd()*.08,.45+rnd()*.1,.19+rnd()*.1).convertSRGBToLinear();crown.setColorAt(a1++,cc)}}
+    crown.count=a1;fir.count=a2c;[crown,fir,trunk].forEach(function(m){m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;world.add(m)});
+  })();
 
-  /* field */
+  /* ---- field ---- */
   (function field(){var sc=Math.min(32,Math.floor(2000/S.w)),cv=document.createElement('canvas');cv.width=Math.round(S.w*sc);cv.height=Math.round(S.h*sc);
     var g=cv.getContext('2d');g.save();g.translate(cv.width/2,cv.height/2);g.scale(sc,sc);S.draw(g);g.restore();
-    g.globalCompositeOperation='source-atop';var rs=11;for(var i=0;i<9000;i++){rs=(rs*16807)%2147483647;var x=rs%cv.width;rs=(rs*16807)%2147483647;var y=rs%cv.height;
-      g.fillStyle=i%2?'rgba(255,255,255,.035)':'rgba(0,0,0,.05)';g.fillRect(x,y,3+i%5,2+i%3)}
+    g.globalCompositeOperation='source-atop';var rs=lcg(11);for(var i=0;i<9000;i++){g.fillStyle=i%2?'rgba(255,255,255,.035)':'rgba(0,0,0,.05)';g.fillRect(rs()*cv.width,rs()*cv.height,3+i%5,2+i%3)}
     var tex=srgb(new T.CanvasTexture(cv));tex.anisotropy=renderer.capabilities.getMaxAnisotropy();
-    var ap=new T.Mesh(discGeo(5.4,.02),lam(S.apron));ap.receiveShadow=true;world.add(ap);
-    var p=new T.Mesh(new T.PlaneGeometry(S.w*A/S.A,S.h*B/S.B),new T.MeshLambertMaterial({map:tex,transparent:true}));p.rotation.x=-PI/2;p.position.y=.06;p.receiveShadow=true;world.add(p);
+    world.add(flat(new T.Mesh(discGeo(D0-.6,.04),lam(S.apron)),1));
+    var p=flat(new T.Mesh(new T.PlaneGeometry(S.w*A/S.A,S.h*B/S.B),new T.MeshLambertMaterial({map:tex,transparent:true})),2);p.rotation.x=-PI/2;p.position.y=.08;world.add(p);
     var W=lam(0xf2f1ec);function add(m){m.castShadow=true;world.add(m);return m}
     if(S.goals)[-1,1].forEach(function(sx){var x=sx*S.goals[0],w=S.goals[1],gh=S.goals[2];
       [-w/2,w/2].forEach(function(z){add(new T.Mesh(new T.CylinderGeometry(.06,.06,gh,8),W)).position.set(x,gh/2,z)});
       var bar=add(new T.Mesh(new T.CylinderGeometry(.06,.06,w+.12,8),W));bar.rotation.x=PI/2;bar.position.set(x,gh,0);
       var net=new T.Mesh(new T.BoxGeometry(1.6,gh,w),lam(0xffffff,{transparent:true,opacity:.22,depthWrite:false}));net.position.set(x+sx*.85,gh/2,0);world.add(net)});
+    if(S.nfl){var Y=lam(0xf2c230);[-1,1].forEach(function(sx){var x=sx*S.nfl;add(new T.Mesh(new T.CylinderGeometry(.09,.09,3.05,8),Y)).position.set(x+sx*1.6,1.52,0);
+      var arm=add(new T.Mesh(new T.CylinderGeometry(.08,.08,1.6,8),Y));arm.rotation.z=PI/2;arm.position.set(x+sx*.8,3.05,0);
+      var bar=add(new T.Mesh(new T.CylinderGeometry(.08,.08,5.64,8),Y));bar.rotation.x=PI/2;bar.position.set(x,3.05,0);
+      [-2.82,2.82].forEach(function(z){add(new T.Mesh(new T.CylinderGeometry(.06,.06,10.7,8),Y)).position.set(x,3.05+5.35,z)})})}
     if(S.net){add(new T.Mesh(new T.BoxGeometry(.06,1,S.net),lam(0xf2f1ec,{transparent:true,opacity:.75}))).position.set(0,.5,0)}
     if(S.hoops)[-1,1].forEach(function(sx){add(new T.Mesh(new T.BoxGeometry(.1,1.05,1.8),lam(0xf2f1ec,{transparent:true,opacity:.85}))).position.set(sx*S.hoops,3.4,0);
       add(new T.Mesh(new T.BoxGeometry(.2,3.4,.2),lam(0x2a2d33))).position.set(sx*(S.hoops+1),1.7,0)});
   })();
 
-  /* structure */
-  var M_CONC=lam(0xa7abb1),M_DARK=lam(0x2f3745),M_WHITE=lam(0xf2f1ec),M_STEEL=lam(0xdfe3e8),
-      M_LED=new T.MeshBasicMaterial({map:ledTex,side:T.DoubleSide}),M_LIGHT=new T.MeshBasicMaterial({color:0xfff6dc,side:T.DoubleSide}),
-      glass=function(op){return lam(0xa9d6ec,{transparent:true,opacity:op,depthWrite:false})},o3=new T.Object3D(),pa={x:0,z:0},pb={x:0,z:0};
-  M_LIGHT.toneMapped=false;
-  picks=[];
-  TIERS.forEach(function(t,i){var m=new T.Mesh(stepGeo(t),M_CONC);m.castShadow=m.receiveShadow=true;world.add(m);
-    band(t.d0-.45,t.h0-.02,t.d0-.45,t.h0-t.dh-.5,M_DARK,true);
-    if(i)band(t.d0-.5,t.h0-.05,t.d0-.5,t.h0+.9,glass(.28),true,true);
-    t.pick=new T.Mesh(bandGeo(t.d0-.7,t.h0+.5,t.d1+.9,t.h1+.5+t.dh,true),new T.MeshBasicMaterial({side:T.DoubleSide}));picks.push(t.pick)});
-  band(5.3,0,5.3,1.25,M_DARK,true);band(5.3,1.25,5.6,1.25,M_WHITE,true);
-  band(5.27,.18,5.27,1.08,M_LED,true,true,Math.round((A+B)/6));
-  for(var ti0=0;ti0<nT-1;ti0++){var t0=TIERS[ti0],d1=t0.d1,h1=t0.h1;
-    band(d1+.4,h1-.02,d1+1.05,h1-.02,M_CONC,true);
-    band(d1+1.05,h1-.02,d1+1.05,h1+.85,M_DARK,true);
+  /* ---- structure ---- */
+  picks=[];var wallH=TIERS[0].h0-.02+.07,urep=Math.round((A+B)/6);
+  TIERS.forEach(function(t,i){var m=new T.Mesh(stepGeo(t,mT(i)),M_CONC);m.castShadow=m.receiveShadow=true;world.add(m);
+    if(i){band(t.d0-.45,t.h0-.02,t.d0-.45,t.h0-t.dh-.5,M_DARK,mT(i));band(t.d0-.5,t.h0-.05,t.d0-.5,t.h0+.9,glass(.28),mT(i),true)}
+    t.pick=new T.Mesh(bandGeo(t.d0-.7,t.h0+.5,t.d1+.9,t.h1+.5+t.dh,mT(i)),new T.MeshBasicMaterial({side:T.DoubleSide}));picks.push(t.pick)});
+  band(D0-.7,0,D0-.7,wallH,S.wall?lam(S.wall):M_DARK,mT(0));band(D0-.7,wallH,D0-.42,wallH,M_WHITE,mT(0));
+  if(S.wall)band(D0-.68,wallH,D0-.68,wallH+1.5,glass(.2),mT(0),true);else band(D0-.73,.16,D0-.73,wallH-.14,M_LED,mT(0),true,urep);
+  for(var ti0=0;ti0<nT-1;ti0++){var t0=TIERS[ti0],d1=t0.d1,h1=t0.h1,mk=mT(ti0+1);
+    band(d1+.35,h1-.02,d1+1.05,h1-.02,M_CONC,mk);band(d1+1.05,h1-.02,d1+1.05,h1+.85,M_DARK,mk);
     if(ti0===0&&box){
-      band(d1+1.05,h1+.4,d1+3.75,h1+.4,M_CONC,true);
-      band(d1+1.45,h1+.45,d1+1.45,h1+3.45,glass(.34),true,true);
-      band(d1+3.75,h1+.4,d1+3.75,h1+3.55,lam(0x574a3c),true);
-      band(d1+1.05,h1+3.5,d1+3.35,h1+3.5,M_WHITE,true);
-      band(d1+1.03,h1+3.5,d1+1.03,h1+3.92,M_LED,true,true,Math.round((A+B)/5));
-      band(d1+1.5,h1+3.38,d1+2.1,h1+3.38,M_LIGHT,true,true);
-      band(d1+2.45,h1+3.5,d1+2.45,h1+3.75,M_DARK,true);
-    }else{band(d1+1.05,h1+.6,d1+2.6,h1+.6,M_CONC,true);band(d1+2.6,h1-1,d1+2.6,h1+3.5,M_DARK,true);
-      band(d1+2.57,h1+2.3,d1+2.57,h1+3.0,M_LED,true,true,Math.round((A+B)/5))}}
-  /* outer shell: dark glazing behind white fins */
-  band(dOut,0,dOut+2.1,hTop,lam(0x55636f),true);
-  band(dOut,hTop,dOut+2.3,hTop,M_WHITE,true);
-  band(dOut,hTop-1.9,dOut,hTop,M_DARK,true);
-  (function fins(){var per=0,px=0,pz=0,j;for(j=0;j<=240;j++){pt(dOut+2.4,j/240*PI*2,pa);if(j)per+=Math.hypot(pa.x-px,pa.z-pz);px=pa.x;pz=pa.z}
-    var n=Math.round(per/2.6),m=boxes(n,M_WHITE),k=0;
-    for(j=0;j<n;j++){var t=(j+.5)/n*PI*2;if(segOpen[Math.floor(t/(PI*2)*SEGS)])continue;pt(dOut+2.5,t,pa);pt(dOut+3.5,t,pb);
-      o3.position.set(pa.x,hTop/2,pa.z);o3.rotation.set(0,Math.atan2(pb.x-pa.x,pb.z-pa.z),0);o3.scale.set(.22,hTop,1.3);o3.updateMatrix();m.setMatrixAt(k++,o3.matrix)}
-    m.count=k;world.add(m)})();
-  if(TY.roof){var rin=dOut-13.4,rout=dOut+10.6,hin=hTop+6.5,hout=hTop+1.7;
-    var mem=band(rin,hin,rout,hout,lam(0xffffff,{transparent:true,opacity:.5,depthWrite:false}),true,true);mem.castShadow=true;
-    band(rin,hin+.05,rin,hin-1.0,M_STEEL,true);band(rout,hout,rout,hout-1.5,M_WHITE,true);
-    band(rin+.3,hin-1.0,rin+1.6,hin-1.25,M_LIGHT,true,true);
-    (function rafters(){var n=NB*2,m=boxes(n,M_STEEL),k=0;
-      for(var j=0;j<n;j++){var t=j%2?(tb[(j-1)/2]+tb[(j+1)/2])/2:tb[j/2];if(segOpen[Math.min(SEGS-1,Math.floor(t/(PI*2)*SEGS))])continue;
+      band(d1+1.05,h1+.4,d1+3.75,h1+.4,M_CONC,mk);
+      band(d1+1.45,h1+.45,d1+1.45,h1+3.45,glass(.34),mk,true);
+      band(d1+3.75,h1+.4,d1+3.75,h1+3.55,lam(0x574a3c),mk);
+      band(d1+1.05,h1+3.5,d1+3.35,h1+3.5,M_WHITE,mk);
+      band(d1+1.03,h1+3.5,d1+1.03,h1+3.92,M_LED,mk,true,urep);
+      band(d1+1.5,h1+3.38,d1+2.1,h1+3.38,M_LIGHT,mk,true);
+      band(d1+2.45,h1+3.5,d1+2.45,h1+3.75,M_DARK,mk);
+    }else{band(d1+1.05,h1+.6,d1+2.6,h1+.6,M_CONC,mk);band(d1+2.6,h1-1,d1+2.6,h1+3.5,M_DARK,mk);
+      band(d1+2.57,h1+2.3,d1+2.57,h1+3.0,M_LED,mk,true,urep)}}
+  /* outer shell, concourse and roof, per stand height so partial stands close properly */
+  var solid=R&&R.ext==='solid',shellMat=lam(R&&R.shell?(solid?R.shell:0x55636f):0x55636f),finMat=lam(R&&R.shell&&!solid?R.shell:0xf2f1ec),nR=0;
+  for(var v=1;v<=nT;v++){if(topK.indexOf(v)<0)continue;var tv=TIERS[v-1],dv=dOutV[v],hv=hTopV[v],mv=mV(v);
+    band(tv.d1+.35,tv.h1-.02,dv,tv.h1-.02,M_CONC,mv);band(dv,tv.h1-.02,dv,hv,M_DARK,mv);
+    band(dv,0,dv+2.1,hv,shellMat,mv);band(dv,hv,dv+2.3,hv,M_WHITE,mv);
+    (function(v,dv,hv){var mr=function(j){return segTop[j]===v&&segRoof[j]};if(rt!=='ring'||!topK.some(function(x,k){return x===v&&roofK[k]}))return;
+      var rd=Math.max(9,rc*(dv-D0+2)),rout=dv+8,hout=hv+1.7,rin=dv-rd,hin=hout+.2*(rout-rin);
+      var mem=band(rin,hin,rout,hout,lam(0xffffff,{transparent:true,opacity:rc>.7?.36:.5,depthWrite:false}),mr,true);mem.castShadow=true;
+      band(rin,hin+.05,rin,hin-1.0,M_STEEL,mr);band(rout,hout,rout,hout-1.4,M_WHITE,mr);band(dv+2.1,hv,rout,hout-1.4,M_WHITE,mr);
+      band(rin+.3,hin-1.0,rin+1.6,hin-1.25,M_LIGHT,mr,true);
+      var m=boxes(NB*2,M_STEEL),k=0;for(var j=0;j<NB*2;j++){var t=j%2?(tb[(j-1)/2]+tb[(j+1)/2])/2:tb[j/2],sg=segAt(t+.001);if(segTop[sg]!==v||!segRoof[sg])continue;
         pt(rin,t,pa);pt(rout,t,pb);var len=Math.hypot(pb.x-pa.x,hout-hin,pb.z-pa.z);
         o3.position.set((pa.x+pb.x)/2,(hin+hout)/2-.45,(pa.z+pb.z)/2);o3.rotation.set(0,0,0);o3.lookAt(pb.x,hout-.45,pb.z);o3.scale.set(.28,.8,len);o3.updateMatrix();m.setMatrixAt(k++,o3.matrix)}
-      m.count=k;world.add(m)})()}
-  if(nT>1)[-1,1].forEach(function(sx){if(sx>0&&TY.open==='end')return;
-    var sbw=Math.min(26,B*.9),sbh=sbw*.3,x=sx*(A+dOut-6.4),b=new T.Mesh(new T.BoxGeometry(1.2,sbh,sbw),lam(0x161b24));b.position.set(x,hTop+4,0);b.castShadow=true;world.add(b);
+      m.count=k;world.add(m)})(v,dv,hv)}
+  if(!solid)(function fins(){var per=0,px=0,pz=0,j;for(j=0;j<=240;j++){pt(dOut+2.4,j/240*PI*2,pa);if(j)per+=Math.hypot(pa.x-px,pa.z-pz);px=pa.x;pz=pa.z}
+    var n=Math.round(per/2.6),m=boxes(n,finMat),k=0;
+    for(j=0;j<n;j++){var t=(j+.5)/n*PI*2,v=segTop[segAt(t)];if(!v)continue;pt(dOutV[v]+2.5,t,pa);pt(dOutV[v]+3.5,t,pb);
+      o3.position.set(pa.x,hTopV[v]/2,pa.z);o3.rotation.set(0,Math.atan2(pb.x-pa.x,pb.z-pa.z),0);o3.scale.set(.22,hTopV[v],1.3);o3.updateMatrix();m.setMatrixAt(k++,o3.matrix)}
+    m.count=k;world.add(m)})();
+  /* end walls wherever neighbouring blocks differ in height, so no stand is left hollow */
+  (function caps(){var mat=lam(0x9aa0a8);
+    function wall(v,t){var P=[[D0-.7,0],[D0-.7,wallH]],cx=sp(Math.cos(t)),cz=sp(Math.sin(t));
+      for(var i=0;i<v;i++){var q=TIERS[i];P.push([q.d0-.45,q.h0-.02],[q.d1+.35,q.h1+q.dh-.02]);if(i<v-1)P.push([TIERS[i+1].d0-.45,q.h1+q.dh-.02])}
+      P.push([dOutV[v],TIERS[v-1].h1+q.dh-.02],[dOutV[v],hTopV[v]],[dOutV[v]+2.1,hTopV[v]],[dOutV[v]+2.1,0]);
+      var f=T.ShapeUtils.triangulateShape(P.map(function(p){return new T.Vector2(p[0],p[1])}),[]),pos=[],idx=[];
+      P.forEach(function(p){pos.push((A+p[0])*cx,p[1],(B+p[0])*cz)});f.forEach(function(a){idx.push(a[0],a[1],a[2])});
+      var g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
+      var m=new T.Mesh(g,mat);m.castShadow=m.receiveShadow=true;world.add(m)}
+    for(var k=0;k<NB;k++){var a=topK[(k+NB-1)%NB],b=topK[k];if(a===b)continue;if(a)wall(a,tb[k]-.0006);if(b)wall(b,tb[k]+.0006)}})();
+  /* dome or spanning roof: a frame of ribs and hoops, optionally with a faint translucent skin */
+  if(rt==='dome')(function(){var dr=dOut+7,hr=hTop+1.5,H=(R.dh||.2)*(A+dOut),oc=R.oc||.6,NM=28,RS=9,m=boxes(NM*RS+NM*3+NM,M_STEEL),k=0,P0=new T.Vector3(),P1=new T.Vector3();
+    function dp(t,u,o){pt(dr,t,pa);var f=1-u;o.set(pa.x*f,hr+H*Math.sin(u*PI/2),pa.z*f);return o}
+    function beam(a,b,w,hh){o3.position.copy(a).add(b).multiplyScalar(.5);o3.rotation.set(0,0,0);o3.lookAt(b);o3.scale.set(w,hh,a.distanceTo(b));o3.updateMatrix();m.setMatrixAt(k++,o3.matrix)}
+    for(var j=0;j<NM;j++){var t=j/NM*PI*2,t2=(j+1)/NM*PI*2;for(var r=0;r<RS;r++)beam(dp(t,oc*r/RS,P0).clone(),dp(t,oc*(r+1)/RS,P1).clone(),.35,.9);
+      [.34,.67,1].forEach(function(f){beam(dp(t,oc*f,P0).clone(),dp(t2,oc*f,P1).clone(),f===1?.6:.3,f===1?1.2:.6)})}
+    m.count=k;m.receiveShadow=false;world.add(m);
+    band(dOut+2.1,hTop,dr,hr,M_WHITE,null);band(dr,hr,dr,hr-1.4,M_WHITE,null);
+    if(R.skin){var NS=120,NU=10,pos=[],idx=[];for(var u=0;u<=NU;u++)for(j=0;j<=NS;j++){dp(j/NS*PI*2,oc*u/NU,P0);pos.push(P0.x,P0.y+.5,P0.z);
+        if(u<NU&&j<NS){var a=u*(NS+1)+j,b=a+NS+1;idx.push(a,b,a+1,b,b+1,a+1)}}
+      var g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
+      world.add(new T.Mesh(g,lam(0xffffff,{transparent:true,opacity:R.skin,depthWrite:false})))}})();
+  /* end scoreboards */
+  if(nT>1)[[1,0],[-1,PI]].forEach(function(e){var sx=e[0],v=segTop[segAt(e[1]+.01)];if(v<2)return;
+    var sbw=Math.min(26,B*.9),sbh=sbw*.3,x=sx*(A+dOutV[v]-6.4),y=hTopV[v]+4,b=new T.Mesh(new T.BoxGeometry(1.2,sbh,sbw),lam(0x161b24));b.position.set(x,y,0);b.castShadow=true;world.add(b);
     var cv=document.createElement('canvas');cv.width=640;cv.height=192;var g=cv.getContext('2d');g.fillStyle='#0a1422';g.fillRect(0,0,640,192);
     g.fillStyle='#ff8a1f';g.fillRect(0,0,640,10);g.fillStyle='#fff';g.textAlign='center';g.font='800 46px "Big Shoulders Display","Arial Narrow",sans-serif';
     var nm=venue.name.toUpperCase();while(g.measureText(nm).width>600&&nm.length>6)nm=nm.slice(0,-2);g.fillText(nm,320,92);
     g.fillStyle='#9fb3c8';g.font='600 26px "Figtree",Arial,sans-serif';g.fillText((R?R.city+' · ':'')+SPORTS[venue.sport].label+' · Seat picker demo',320,142);
     var sm=new T.MeshBasicMaterial({map:srgb(new T.CanvasTexture(cv))});sm.toneMapped=false;
-    var scr=new T.Mesh(new T.PlaneGeometry(sbw*.94,sbh*.86),sm);scr.position.set(x-sx*.62,hTop+4,0);scr.rotation.y=-sx*PI/2;world.add(scr)});
+    var scr=new T.Mesh(new T.PlaneGeometry(sbw*.94,sbh*.86),sm);scr.position.set(x-sx*.62,y,0);scr.rotation.y=-sx*PI/2;world.add(scr)});
 
-  /* seats */
+  /* ---- seats, plus the row ribbons used at a distance ---- */
   X=[];Y=[];Z=[];NX=[];NZ=[];sTier=[];sBlock=[];sRow=[];sNum=[];sSold=[];blocks=[];
-  var b0,blockRate=[];for(b0=0;b0<nT*NB;b0++){blocks.push({seats:[],cx:0,cy:0,cz:0,nx:0,nz:0,avail:0,min:1e9});var u=rnd();blockRate.push(.1+.62*u*u)}
+  var b0,blockRate=[],cp=[],cu=[],cc0=[],ci0=[];cS=[];cN=[];
+  for(b0=0;b0<nT*NB;b0++){blocks.push({seats:[],cx:0,cy:0,cz:0,nx:0,nz:0,avail:0,min:1e9});var u0=rnd();blockRate.push(.1+.62*u0*u0);cS.push(0);cN.push(0)}
+  var mix=[CM[0]*.91+CA[0]*.09,CM[1]*.91+CA[1]*.09,CM[2]*.91+CA[2]*.09];
   (function(){var SS=16,p={x:0,z:0},sx=new Float32Array(SS+1),sz=new Float32Array(SS+1),cum=new Float32Array(SS+1);
     for(var ti=0;ti<nT;ti++){var t=TIERS[ti];
-      for(var r=0;r<t.rows;r++){var dd=t.d0+r*t.dd,hh=t.h0+r*t.dh;
-        for(var k=0;k<NB;k++){if(openBlock[k])continue;
+      for(var k=0;k<NB;k++){if(topK[k]<=ti)continue;var bi=ti*NB+k,bl=blocks[bi];cS[bi]=cp.length/3;
+        for(var r=0;r<t.rows;r++){var dd=t.d0+r*t.dd,hh=t.h0+r*t.dh;
           for(var j=0;j<=SS;j++){pt(dd,tb[k]+(tb[k+1]-tb[k])*j/SS,p);sx[j]=p.x;sz[j]=p.z;cum[j]=j?cum[j-1]+Math.hypot(sx[j]-sx[j-1],sz[j]-sz[j-1]):0}
           var n=Math.floor((cum[SS]-AISLE)/PITCH);if(n<1)continue;
-          var start=(cum[SS]-n*PITCH)/2+PITCH/2,seg=0,bi=ti*NB+k,bl=blocks[bi];
+          var start=(cum[SS]-n*PITCH)/2+PITCH/2,seg=0;
           for(var q=0;q<n;q++){var s=start+q*PITCH;while(cum[seg+1]<s)seg++;
             var f=(s-cum[seg])/(cum[seg+1]-cum[seg]),x=sx[seg]+(sx[seg+1]-sx[seg])*f,z=sz[seg]+(sz[seg+1]-sz[seg])*f;
             var tx=sx[seg+1]-sx[seg],tz=sz[seg+1]-sz[seg],l=Math.hypot(tx,tz),nx=tz/l,nz=-tx/l;
@@ -496,30 +657,44 @@ function buildWorld(){
             var i=X.length;X.push(x);Y.push(hh);Z.push(z);NX.push(nx);NZ.push(nz);sTier.push(ti);sBlock.push(k);sRow.push(r+1);sNum.push(q+1);
             var sold=rnd()<blockRate[bi]?1:0;sSold.push(sold);
             bl.seats.push(i);bl.cx+=x;bl.cy+=hh;bl.cz+=z;bl.nx+=nx;bl.nz+=nz;
-            if(!sold){bl.avail++;var pr=priceOf(ti,k,r+1);if(pr<bl.min)bl.min=pr}}}}}})();
+            if(!sold){bl.avail++;var pr=priceOf(ti,k,r+1);if(pr<bl.min)bl.min=pr}}
+          /* ribbon for this row */
+          var s0=start-PITCH/2,s1=s0+n*PITCH,RS=6,base=cp.length/3,jit=.9+rnd()*.2;seg=0;
+          for(var m=0;m<=RS;m++){s=s0+(s1-s0)*m/RS;while(seg<SS-1&&cum[seg+1]<s)seg++;f=(s-cum[seg])/(cum[seg+1]-cum[seg]);x=sx[seg]+(sx[seg+1]-sx[seg])*f;z=sz[seg]+(sz[seg+1]-sz[seg])*f;
+            tx=sx[seg+1]-sx[seg];tz=sz[seg+1]-sz[seg];l=Math.hypot(tx,tz);nx=tz/l;nz=-tx/l;if(nx*x+nz*z<0){nx=-nx;nz=-nz}
+            cp.push(x-nx*.24,hh+.44,z-nz*.24,x+nx*.25,hh+.86,z+nz*.25);cu.push((s-s0)/PITCH,0,(s-s0)/PITCH,1);
+            cc0.push(mix[0]*jit,mix[1]*jit,mix[2]*jit,mix[0]*jit,mix[1]*jit,mix[2]*jit);
+            if(m<RS){var a=base+m*2;ci0.push(a,a+1,a+2,a+1,a+3,a+2)}}}
+        cN[bi]=cp.length/3-cS[bi]}}})();
   N=X.length;
-  stands=[0,1,2,3].map(function(){return{seats:[],cx:0,cy:0,cz:0,nx:0,nz:0,avail:0,min:1e9,n:0}});
-  blocks.forEach(function(bl,bi){var n=bl.seats.length||1,st2=stands[blockStand[bi%NB]];
+  stands=[0,1,2,3].map(function(){return{seats:[],cx:0,cy:0,cz:0,nx:0,nz:0,avail:0,min:1e9,n:0}});standBlocks=[[],[],[],[]];
+  blocks.forEach(function(bl,bi){var n=bl.seats.length||1,st2=stands[blockStand[bi%NB]];if(bl.seats.length)standBlocks[blockStand[bi%NB]].push(bi);
     st2.cx+=bl.cx;st2.cy+=bl.cy;st2.cz+=bl.cz;st2.nx+=bl.nx;st2.nz+=bl.nz;st2.n+=bl.seats.length;st2.avail+=bl.avail;if(bl.min<st2.min)st2.min=bl.min;
     Array.prototype.push.apply(st2.seats,bl.seats);
     bl.cx/=n;bl.cy/=n;bl.cz/=n;var l=Math.hypot(bl.nx,bl.nz)||1;bl.nx/=l;bl.nz/=l});
   stands.forEach(function(s2){var n=s2.n||1;s2.cx/=n;s2.cy/=n;s2.cz/=n;var l=Math.hypot(s2.nx,s2.nz)||1;s2.nx/=l;s2.nz/=l});
 
   baseCol=new Float32Array(N*3);col=new Float32Array(N*3);var mats=new Float32Array(N*16);grid=new Map();
-  for(var i0=0;i0<N;i0++){
-    var blue=rnd()<.09||(sRow[i0]%7===0&&rnd()<.5),c0=blue?C_BLUE:C_RED,jit=.9+rnd()*.2;
-    baseCol[i0*3]=c0[0]*jit;baseCol[i0*3+1]=c0[1]*jit;baseCol[i0*3+2]=c0[2]*jit;
-    var o=i0*16,nx0=NX[i0],nz0=NZ[i0];
-    mats[o]=nz0;mats[o+2]=-nx0;mats[o+5]=1;mats[o+8]=nx0;mats[o+10]=nz0;mats[o+12]=X[i0];mats[o+13]=Y[i0];mats[o+14]=Z[i0];mats[o+15]=1;
-    var gk=gkey(sTier[i0],X[i0],Z[i0]),ga=grid.get(gk);if(!ga){ga=[];grid.set(gk,ga)}ga.push(i0)}
+  for(var i1=0;i1<N;i1++){
+    var acc=rnd()<.09||(sRow[i1]%7===0&&rnd()<.5),c0=acc?CA:CM,jit=.9+rnd()*.2;
+    baseCol[i1*3]=c0[0]*jit;baseCol[i1*3+1]=c0[1]*jit;baseCol[i1*3+2]=c0[2]*jit;
+    var o=i1*16,nx0=NX[i1],nz0=NZ[i1];
+    mats[o]=nz0;mats[o+2]=-nx0;mats[o+5]=1;mats[o+8]=nx0;mats[o+10]=nz0;mats[o+12]=X[i1];mats[o+13]=Y[i1];mats[o+14]=Z[i1];mats[o+15]=1;
+    var gk=gkey(sTier[i1],X[i1],Z[i1]),ga=grid.get(gk);if(!ga){ga=[];grid.set(gk,ga)}ga.push(i1)}
   col.set(baseCol);
   seats=new T.InstancedMesh(seatGeo(),seatMat(),N);seats.castShadow=seats.receiveShadow=true;
   seats.instanceMatrix=new T.InstancedBufferAttribute(mats,16);
   seats.instanceColor=new T.InstancedBufferAttribute(col,3);
   seats.frustumCulled=false;world.add(seats);
+  cBase=new Float32Array(cc0);cCol=new Float32Array(cc0);
+  var cg=new T.BufferGeometry();cg.setAttribute('position',new T.Float32BufferAttribute(cp,3));cg.setAttribute('uv',new T.Float32BufferAttribute(cu,2));
+  cg.setAttribute('color',new T.BufferAttribute(cCol,3));cg.setIndex(ci0);cg.computeVertexNormals();
+  carpet=new T.Mesh(cg,new T.MeshLambertMaterial({map:carpetTex,vertexColors:true,side:T.DoubleSide}));carpet.receiveShadow=true;carpet.frustumCulled=false;carpet.visible=false;world.add(carpet);
+
   var ext=A+dOut+34,sc2=sun.shadow.camera;sun.position.set(-.64*ext*2.4,.6*ext*2.4,.48*ext*2.4);sun.target.position.set(0,0,0);
   sc2.left=sc2.bottom=-ext*1.25;sc2.right=sc2.top=ext*1.25;sc2.near=1;sc2.far=ext*6;sc2.updateProjectionMatrix();
-  renderer.shadowMap.needsUpdate=true;dirty=true;
+  /* bake the shadow map once with the real seats, then drop to the ribbons for the overview */
+  seats.visible=true;lod=false;renderer.shadowMap.needsUpdate=true;renderer.render(scene,cam);dirty=true;
 }
 function nearestSeat(ti,x,y,z){var best=-1,bd=4;
   for(var dx=-3;dx<=3;dx+=3)for(var dz=-3;dz<=3;dz+=3){var a=grid.get(gkey(ti,x+dx,z+dz));if(!a)continue;
@@ -538,14 +713,20 @@ function paint(list,mode){
     col[i*3]=c[0];col[i*3+1]=c[1];col[i*3+2]=c[2]}
   seats.instanceColor.needsUpdate=true;dirty=true}
 function hoverList(h){if(!h)return[];if(h.t==='s')return stands[h.s].seats;if(h.t==='b')return blocks[h.b].seats;return[h.i]}
+function paintCarpet(list,mode){for(var j=0;j<list.length;j++){var s=cS[list[j]]*3,e=s+cN[list[j]]*3;
+    if(mode)for(var i=s;i<e;i+=3){cCol[i]=C_HI[0];cCol[i+1]=C_HI[1];cCol[i+2]=C_HI[2]}else for(i=s;i<e;i++)cCol[i]=cBase[i]}
+  carpet.geometry.attributes.color.needsUpdate=true;dirty=true}
+function hl(h,mode){if(lod&&h.t!=='x')paintCarpet(h.t==='s'?standBlocks[h.s]:[h.b],mode);else paint(hoverList(h),mode)}
 function setHover(h){var a=st.hover;
   if((a&&h&&a.key===h.key)||(!a&&!h))return;
-  if(a)paint(hoverList(a),0);st.hover=h;if(h)paint(hoverList(h),1)}
+  if(a)hl(a,0);st.hover=h;if(h)hl(h,1)}
+/* far views show row ribbons, near views show every seat */
+function setLod(on){if(lod===on)return;setHover(null);lod=on;seats.visible=!on;carpet.visible=on;dirty=true}
 
 /* ---------- camera ---------- */
 var cur={p:new T.Vector3(),t:new T.Vector3(),f:42},tw=null;
 var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-function apply(){cam.position.copy(cur.p);cam.fov=cur.f;cam.updateProjectionMatrix();cam.lookAt(cur.t);dirty=true}
+function apply(){cam.position.copy(cur.p);cam.fov=cur.f;cam.near=st.level>=3?.2:Math.max(.3,Math.min(5,cur.p.distanceTo(cur.t)*.02));cam.updateProjectionMatrix();cam.lookAt(cur.t);dirty=true}
 function fly(p,t,f,ms){return new Promise(function(res){
   if(reduce||!ms){cur.p.copy(p);cur.t.copy(t);cur.f=f;apply();res();return}
   tw={p0:cur.p.clone(),t0:cur.t.clone(),f0:cur.f,p1:p,t1:t,f1:f,s:performance.now(),ms:ms,res:res}})}
@@ -575,21 +756,21 @@ function ui(){
   $('back').disabled=st.level===0;
   if(st.level===0)setHint('Step 1 · Choose a stand','Move over the stadium and click a stand. Drag to turn the view.');
   else if(st.level===1)setHint('Step 2 · Choose a block','Each block shows its price and the seats left.');
-  else if(st.level===2)setHint('Step 3 · Choose a seat','Grey seats are sold. Click a red or blue one.');
+  else if(st.level===2)setHint('Step 3 · Choose a seat','Grey seats are sold. Click any coloured seat.');
   hint.style.display=st.level>=3?'none':'';
   canvas.style.cursor=st.level===0?'':'default';
 }
 function clearOpenBlock(){if(st.block<0)return;var l=blocks[st.tier*NB+st.block].seats,lv=st.level;st.level=0;var s=st.seat;st.seat=-1;paint(l,0);st.level=lv;st.seat=s}
 function hideTicket(){ticket.classList.remove('show')}
 function go(view,ms){st.busy=true;setHover(null);tip.style.display='none';return fly(view[0],view[1],view[2],ms).then(function(){st.busy=false})}
-function goOverview(){hideTicket();clearOpenBlock();vip.visible=false;st.level=0;st.stand=st.tier=st.block=st.seat=-1;st.vip=false;ui();return go(vOverview(),1500)}
-function goStand(s){hideTicket();clearOpenBlock();vip.visible=false;st.level=1;st.stand=s;st.tier=st.block=st.seat=-1;st.vip=false;ui();return go(vStand(s),1500)}
-function goBlock(ti,b){hideTicket();clearOpenBlock();vip.visible=false;st.stand=blockStand[b];st.tier=ti;st.block=b;st.seat=-1;st.vip=false;st.level=2;paint(blocks[ti*NB+b].seats,0);ui();return go(vBlock(ti,b),1400)}
-function goSeat(i){hideTicket();vip.visible=false;closeSetup();
+function goOverview(){hideTicket();clearOpenBlock();vip.visible=false;st.level=0;st.stand=st.tier=st.block=st.seat=-1;st.vip=false;ui();return go(vOverview(),1500).then(function(){if(st.level<=1)setLod(true)})}
+function goStand(s){hideTicket();clearOpenBlock();vip.visible=false;st.level=1;st.stand=s;st.tier=st.block=st.seat=-1;st.vip=false;ui();return go(vStand(s),1500).then(function(){if(st.level<=1)setLod(true)})}
+function goBlock(ti,b){setLod(false);hideTicket();clearOpenBlock();vip.visible=false;st.stand=blockStand[b];st.tier=ti;st.block=b;st.seat=-1;st.vip=false;st.level=2;paint(blocks[ti*NB+b].seats,0);ui();return go(vBlock(ti,b),1400)}
+function goSeat(i){setLod(false);hideTicket();vip.visible=false;closeSetup();
   if(st.tier!==sTier[i]||st.block!==sBlock[i]){clearOpenBlock();st.tier=sTier[i];st.block=sBlock[i];st.stand=blockStand[st.block]}
   st.level=3;st.vip=false;st.held=false;st.seat=i;paint(blocks[st.tier*NB+st.block].seats,0);ui();
   return go(vSeat(i),1900).then(function(){showTicket()})}
-function goVip(){if(!box)return;hideTicket();st.vip=true;st.held=false;ui();
+function goVip(){if(!hasBox(st.block))return;hideTicket();st.vip=true;st.held=false;ui();
   var o=boxPose(st.block);vip.position.set(o.x-o.nx*1.9,box.h+.45,o.z-o.nz*1.9);vip.rotation.y=Math.atan2(o.nx,o.nz);vip.visible=true;renderer.shadowMap.needsUpdate=true;
   return go(vVip(st.block),2000).then(function(){showTicket()})}
 function goLevel(l){if(st.busy)return;
@@ -618,7 +799,7 @@ function showTicket(){var i=st.seat,ti=st.tier,b=st.block,price=priceOf(ti,b,sRo
     $('t-title').textContent='Block '+blockLabel(ti,b);$('t-facts').innerHTML=fact('Row',sRow[i])+fact('Seat',sNum[i])+fact('Gate',gate(b));
     $('t-price').textContent=money(price);
     if(st.held)note('Seat held. This is a demo, so no payment is taken.');
-    else{if(box)btn('go','Upgrade to a skybox · +'+money(VIP_EXTRA),function(){if(!st.busy)goVip()});btn(box?'keep':'go','Keep my seat',function(){st.held=true;showTicket()})}
+    else{var hb=hasBox(b);if(hb)btn('go','Upgrade to a skybox · +'+money(VIP_EXTRA),function(){if(!st.busy)goVip()});btn(hb?'keep':'go','Keep my seat',function(){st.held=true;showTicket()})}
   }
   $('t-bars').innerHTML=bars(i+1+(st.vip?99991:0));ticket.classList.add('show')}
 
@@ -666,16 +847,16 @@ Object.keys(SPORTS).forEach(function(k){opt(selSport,k,SPORTS[k].label)});
 Object.keys(TYPES).forEach(function(k){opt(selType,k,TYPES[k].label)});
 function allVenues(){return REALS.concat(PRESETS,custom)}
 function fillVenues(){selVenue.innerHTML='';
-  [['Real stadiums',REALS],['Generic stadiums',PRESETS],['Your stadiums',custom]].forEach(function(g){if(!g[1].length)return;
+  GROUPS.map(function(g){return[g[1],REALS.filter(function(v){return v.g===g[0]})]}).concat([['Generic stadiums',PRESETS],['Your stadiums',custom]]).forEach(function(g){if(!g[1].length)return;
     var og=document.createElement('optgroup');og.label=g[0];g[1].forEach(function(v){opt(og,v.id,v.name)});selVenue.appendChild(og)});selVenue.value=venue.id}
 function loadVenue(resetAz){
   st.busy=false;tw=null;st.hover=null;st.level=0;st.stand=st.tier=st.block=st.seat=-1;st.vip=false;st.held=false;vip.visible=false;hideTicket();tip.style.display='none';
   if(resetAz)st.az=0;
-  buildWorld();
+  buildWorld();setLod(true);
   var R=REALCFG;$('venue-name').textContent=venue.name;
   $('venue-sub').textContent=R?R.city+' · '+SPORTS[venue.sport].label+' · '+R.cap.toLocaleString('en-US')+' seats · demo, not real ticketing':SPORTS[venue.sport].event;
   selSport.disabled=selType.disabled=!!R;$('type-row').style.display=R?'none':'';
-  $('facts').textContent=R?R.note+' This model has '+N.toLocaleString('en-US')+' seats against a published capacity of '+R.cap.toLocaleString('en-US')+'. Prices and sold seats are invented, and this demo has no link to the venue.'
+  $('facts').textContent=R?R.note+' Model: '+N.toLocaleString('en-US')+' seats against a published '+R.cap.toLocaleString('en-US')+'. Prices and sold seats are invented, and this demo has no link to the venue.'
     :'Fictional stadium with '+N.toLocaleString('en-US')+' seats. Prices and sold seats are invented.';
   document.title=venue.name+' Seat Picker';
   selSport.value=venue.sport;selType.value=venue.type;selVenue.value=venue.id;$('remove').hidden=!venue.custom;
@@ -705,7 +886,7 @@ function frame(now){
   if(dirty){dirty=false;renderer.render(scene,cam)}requestAnimationFrame(frame)}
 size();fillVenues();loadVenue(true);
 if(window.innerWidth>900){setup.classList.add('open');setupBtn.setAttribute('aria-expanded','true')}
-window.__stadium={st:st,goSeat:goSeat,goVip:goVip,count:function(){return N},sold:function(i){return sSold[i]},set:function(s,t){selSport.value=s;selType.value=t;changed()}};
+window.__stadium={topK:function(){return topK},lod:function(){return lod},ids:function(){return REALS.map(function(v){return[v.id,REAL[v.id].cap]})},st:st,goSeat:goSeat,goVip:goVip,count:function(){return N},sold:function(i){return sSold[i]},set:function(s,t){selSport.value=s;selType.value=t;changed()}};
 window.addEventListener('load',function(){dirty=true});requestAnimationFrame(frame);
 })();
 </script>

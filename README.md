@@ -13,9 +13,15 @@ A real-time 3D stadium where you pick a stand, a block and a seat, fly down to i
 
 ## Real stadiums
 
-Eight real venues are included: Wembley Stadium, Spotify Camp Nou, Narendra Modi Stadium, M. Chinnaswamy Stadium, Jawaharlal Nehru Stadium (Delhi), Birsa Munda Hockey Stadium, Arthur Ashe Stadium and Madison Square Garden.
+44 real venues, grouped by sport:
 
-Each model matches the venue's published capacity (within about 2%), sport, tier count and stand or end names. The geometry is generated to fit those facts. It is not a survey of the building, and block and seat numbering is not the venue's own. Tier splits are estimated where no published split exists. The setup panel states what was estimated for each venue.
+- Football: Wembley, Spotify Camp Nou, Santiago Bernabéu, Signal Iduna Park, Allianz Arena, San Siro, Maracanã, Estadio Azteca, Old Trafford, La Bombonera
+- American football: AT&T Stadium, SoFi Stadium, Lambeau Field, Arrowhead Stadium, Caesars Superdome, Mercedes-Benz Stadium, Allegiant Stadium, MetLife Stadium, Lumen Field, U.S. Bank Stadium
+- Cricket: Narendra Modi Stadium, Melbourne Cricket Ground, Lord's, Eden Gardens, The Oval, Adelaide Oval, Wankhede Stadium, M. Chinnaswamy Stadium, Optus Stadium, Dubai International Cricket Stadium
+- Ice hockey: Bell Centre, SKA Arena, Madison Square Garden, United Center, Little Caesars Arena, Scotiabank Arena, Rogers Place, Lanxess Arena, T-Mobile Arena, Climate Pledge Arena
+- Other: Jawaharlal Nehru Stadium (Delhi), Birsa Munda Hockey Stadium, Arthur Ashe Stadium, Madison Square Garden (basketball)
+
+Each model is generated from a short spec: published capacity, sport, bowl shape, tiers present on each side, open ends, and roof type. Seat counts land within a few percent of the published capacity. The geometry is not a survey of the building, block and seat numbering is not the venue's own, and tier splits and seat colours are estimates. The setup panel says so for each venue. Indoor arenas and domes are drawn with an open roof frame so the bowl stays visible.
 
 ## Demo only
 

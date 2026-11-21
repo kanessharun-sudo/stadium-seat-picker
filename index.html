@@ -105,6 +105,16 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{ou
 .ticket.vip .go{background:#f3ead8}
 .ticket.vip .keep,.ticket.vip .note{color:#cdbf9f}
 
+.loader{position:fixed;inset:0;z-index:5;display:grid;place-items:center;padding:24px;background:var(--ink);transition:opacity .35s}
+.loader.hide{opacity:0;pointer-events:none}
+.loader .box{width:min(360px,100%);text-align:center}
+.loader .k{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.loader h2{font-family:var(--display);font-weight:800;font-size:40px;line-height:1;letter-spacing:.03em;text-transform:uppercase;margin:8px 0 6px;overflow-wrap:anywhere}
+.loader p{margin:0 0 18px;color:#cfd6e0;font-size:14px;font-variant-numeric:tabular-nums}
+.loader .bar{height:4px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
+.loader .bar i{display:block;width:40%;height:100%;background:var(--accent);border-radius:4px;animation:slide 1.1s ease-in-out infinite;will-change:transform}
+@keyframes slide{0%{transform:translateX(-110%)}100%{transform:translateX(260%)}}
+@media (prefers-reduced-motion:reduce){.loader .bar i{animation:none;width:100%}}
 .fail{position:fixed;inset:0;display:none;place-items:center;padding:24px;text-align:center;background:var(--ink)}
 .fail p{max-width:420px;color:#dfe5ee}
 
@@ -178,6 +188,8 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{ou
   </div>
 </section>
 
+<div class="loader" id="loader" role="status" aria-live="polite"><div class="box"><div class="k">Building the stadium</div><h2 id="ld-name">Wembley Stadium</h2><p id="ld-sub">Placing about 90,000 seats. This takes a few seconds.</p><div class="bar"><i></i></div></div></div>
+
 <div class="fail" id="fail"><p>This page needs WebGL to draw the stadium. Open it in a current version of Chrome, Safari, Edge or Firefox with hardware acceleration on.</p></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -185,9 +197,9 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{ou
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id)};
-if(!window.THREE){$('fail').style.display='grid';return}
+if(!window.THREE){$('fail').style.display='grid';$('loader').classList.add('hide');return}
 var T=THREE, canvas=$('scene'), renderer;
-try{renderer=new T.WebGLRenderer({canvas:canvas,antialias:true})}catch(e){$('fail').style.display='grid';return}
+try{renderer=new T.WebGLRenderer({canvas:canvas,antialias:true})}catch(e){$('fail').style.display='grid';$('loader').classList.add('hide');return}
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
 
 /* ---------- catalogue: sports, stadium types, venues ---------- */
@@ -850,6 +862,12 @@ function fillVenues(){selVenue.innerHTML='';
   GROUPS.map(function(g){return[g[1],REALS.filter(function(v){return v.g===g[0]})]}).concat([['Generic stadiums',PRESETS],['Your stadiums',custom]]).forEach(function(g){if(!g[1].length)return;
     var og=document.createElement('optgroup');og.label=g[0];g[1].forEach(function(v){opt(og,v.id,v.name)});selVenue.appendChild(og)});selVenue.value=venue.id}
 function loadVenue(resetAz){
+  var ld=$('loader'),cap=venue.real?REAL[venue.id].cap:0;
+  $('ld-name').textContent=venue.name;
+  $('ld-sub').textContent=(cap?'Placing about '+(Math.round(cap/1000)*1000).toLocaleString('en-US')+' seats.':'Placing every seat.')+' This takes a few seconds.';
+  ld.classList.remove('hide');st.busy=true;
+  requestAnimationFrame(function(){setTimeout(function(){buildVenue(resetAz);renderer.render(scene,cam);ld.classList.add('hide')},30)})}
+function buildVenue(resetAz){
   st.busy=false;tw=null;st.hover=null;st.level=0;st.stand=st.tier=st.block=st.seat=-1;st.vip=false;st.held=false;vip.visible=false;hideTicket();tip.style.display='none';
   if(resetAz)st.az=0;
   buildWorld();setLod(true);
